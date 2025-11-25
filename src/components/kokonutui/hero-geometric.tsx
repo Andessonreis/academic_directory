@@ -143,19 +143,19 @@ function CentralGlow() {
       <motion.div
         animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.3, 0.6, 0.3],
+          opacity: [0.2, 0.5, 0.2],
         }}
         transition={{
           duration: 4,
           repeat: Number.POSITIVE_INFINITY,
           ease: "easeInOut",
         }}
-        className="w-96 h-96 bg-gradient-to-r from-purple-500/30 via-pink-500/40 to-violet-500/30 rounded-full blur-3xl"
+        className="w-96 h-96 bg-gradient-to-r from-purple-900/30 via-pink-900/20 to-violet-900/30 rounded-full blur-3xl"
       />
       <motion.div
         animate={{
           scale: [1.2, 1, 1.2],
-          opacity: [0.2, 0.4, 0.2],
+          opacity: [0.1, 0.3, 0.1],
         }}
         transition={{
           duration: 3,
@@ -163,7 +163,7 @@ function CentralGlow() {
           ease: "easeInOut",
           delay: 1,
         }}
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-pink-400/40 to-purple-400/40 rounded-full blur-2xl"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-pink-500/10 to-purple-500/10 rounded-full blur-2xl"
       />
     </div>
   )
@@ -304,11 +304,11 @@ export default function HeroGeometric({
   return (
     <div
       className={cn(
-        "relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-black",
+        "relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]",
         inter.className,
       )}
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-purple-900/20" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#030303] to-[#030303]" />
 
       <ScatteredDots />
 
@@ -367,7 +367,7 @@ export default function HeroGeometric({
           </motion.div>
 
           <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible">
-            <p className="text-lg sm:text-xl text-gray-200 mb-12 leading-relaxed max-w-2xl mx-auto font-medium drop-shadow-md">
+            <p className="text-lg sm:text-xl text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto font-medium drop-shadow-md">
               <AnimatedText text={subtitle} delay={4} />
             </p>
           </motion.div>

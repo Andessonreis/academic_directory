@@ -178,7 +178,7 @@ export default function HeroGeometric({
 
   return (
     <div className={cn("relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-black", inter.className)}>
-      {/* Background simplificado */}
+
       <div className="absolute inset-0 bg-gradient-to-br from-gray-950 via-black to-purple-950/30" />
 
       <ScatteredDots />

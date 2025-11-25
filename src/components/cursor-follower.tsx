@@ -17,7 +17,6 @@ export default function CursorFollower() {
 
     window.addEventListener("mousemove", updateMousePosition)
 
-    // Add hover effects to interactive elements
     const interactiveElements = document.querySelectorAll("button, a, [role='button']")
     interactiveElements.forEach((el) => {
       el.addEventListener("mouseenter", handleMouseEnter)
@@ -35,7 +34,7 @@ export default function CursorFollower() {
 
   return (
     <>
-      {/* Main cursor */}
+
       <motion.div
         className="fixed top-0 left-0 w-6 h-6 bg-gradient-to-r from-indigo-400 to-rose-400 rounded-full pointer-events-none z-50 mix-blend-difference"
         animate={{
@@ -50,8 +49,6 @@ export default function CursorFollower() {
           mass: 0.5,
         }}
       />
-
-      {/* Trailing cursor */}
       <motion.div
         className="fixed top-0 left-0 w-8 h-8 border-2 border-white/30 rounded-full pointer-events-none z-40"
         animate={{

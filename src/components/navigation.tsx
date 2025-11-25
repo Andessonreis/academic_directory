@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 
-// --- Configuration & Types ---
-
 interface NavItem {
   label: string
   href: string
@@ -20,13 +18,10 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Contato", href: "#contato", isExternal: true },
 ]
 
-// --- Components ---
-
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
-  // Efeito para adicionar background ao scrollar (UX Polishing)
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", handleScroll)
@@ -39,16 +34,15 @@ export default function Navigation() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       className={`fixed top-0 left-0 right-0 z-50 border-b transition-all duration-300 ${scrolled || isOpen
-          ? "bg-[#030303]/90 backdrop-blur-md border-white/[0.08]"
-          : "bg-transparent border-transparent"
+        ? "bg-[#030303]/90 backdrop-blur-md border-white/[0.08]"
+        : "bg-transparent border-transparent"
         }`}
     >
       <div className="container mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-20">
 
-          {/* Logo Section */}
           <Link href="/" className="flex items-center gap-3 group">
-            {/* Ajuste: Fundo branco e tamanho flexível para o logo ficar visível e legível */}
+
             <div className="h-10 bg-white rounded-md p-1.5 flex items-center justify-center group-hover:bg-gray-100 transition-colors shadow-lg shadow-white/5">
               <img
                 src="/logo-hopper-ifba.png"
@@ -59,14 +53,12 @@ export default function Navigation() {
 
           </Link>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {NAV_ITEMS.map((item) => (
               <NavLink key={item.label} item={item} />
             ))}
           </div>
 
-          {/* Mobile Menu Toggle */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden p-2 text-white/70 hover:text-white transition-colors rounded-full hover:bg-white/10"
@@ -77,7 +69,6 @@ export default function Navigation() {
         </div>
       </div>
 
-      {/* Mobile Navigation Menu */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -96,7 +87,6 @@ export default function Navigation() {
                 />
               ))}
 
-              {/* Botão extra específico do mobile (opcional, mantive a ideia do seu código original) */}
               <div className="pt-4 border-t border-white/[0.08] mt-2">
                 <button className="w-full py-3 px-4 rounded-lg border border-white/20 text-white hover:bg-white/5 transition-all text-sm font-medium">
                   Book a call
@@ -109,8 +99,6 @@ export default function Navigation() {
     </motion.nav>
   )
 }
-
-// --- Sub-components para organização ---
 
 function NavLink({ item }: { item: NavItem }) {
   return (
