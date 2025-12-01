@@ -113,8 +113,8 @@ export default function Footer() {
           <p className="text-white/40 text-sm">
             © 2025 Diretório Acadêmico. Feito por estudantes, para estudantes.
           </p>
-          <p className="text-white/20 text-xs">
-            Desenvolvido com Next.js & Tailwind
+          <p className="text-white/60 text-xs">
+            Desenvolvido por <a href="https://andessonreis.vercel.app" className="underline hover:text-purple-400 transition-colors">Andesson Reis</a>
           </p>
         </motion.div>
       </div>
