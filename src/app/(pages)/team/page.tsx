@@ -1,14 +1,10 @@
-import HeroGeometric from "@/components/kokonutui/hero-geometric"
 import Navigation from "@/components/navigation"
+import TeamSection from "@/components/team/team-section"
 import Footer from "@/components/footer"
 import CursorFollower from "@/components/cursor-follower"
-import ContactSection from "@/components/contact-section"
-import EventsSection from "@/components/events/event-section"
-import StudentHub from "@/components/features"
-import CalendarSection from "@/components/calendar"
 import PixelBlast from "@/components/PixelBlast"
 
-export default function Home() {
+export default function TeamPage() {
   return (
     <main className="min-h-screen bg-[#030303] text-white selection:bg-green-500/30 relative">
       <div className="fixed inset-0 z-50 pointer-events-none mix-blend-screen">
@@ -37,14 +33,9 @@ export default function Home() {
         <CursorFollower />
         <Navigation />
 
-        <div className="relative">
-          <HeroGeometric badge="Gestão 2025 - 2026" title1="Diretório Acadêmico IFBA" />
-        </div>
+        <div className="h-20" />
 
-        <EventsSection />
-        <StudentHub />
-        <CalendarSection />
-        <ContactSection />
+        <TeamSection />
         <Footer />
       </div>
     </main>

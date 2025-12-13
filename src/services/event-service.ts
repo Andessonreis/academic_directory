@@ -1,74 +1,206 @@
-import { EventItem } from "@/types/event";
+import { supabase } from "@/lib/supabase/client"
+import type { EventItem } from "@/types/event"
 
-// Aqui estão TODOS os eventos completos.
-// No futuro, você vai substituir esse array por uma chamada ao Supabase/Firebase.
-const MOCK_DB: EventItem[] = [
-  {
-    id: 1,
-    title: "Hackathon IFBA 2024",
-    date: "15 Mar, 2024",
-    time: "08:00 - 20:00",
-    location: "Laboratórios de Informática",
-    category: "Tecnologia",
-    categoryColor: "purple",
-    description: "Maratona de programação de 12 horas. Prêmios para as 3 melhores equipes.",
-    longDescription: "Junte sua equipe e venha resolver problemas reais da nossa comunidade. O Hackathon contará com mentores da indústria, pizza grátis e premiação em dinheiro para os vencedores. É necessário trazer seu próprio notebook e muita disposição para codar.",
-    image: "https://images.unsplash.com/photo-1504384308090-c54be3855833?q=80&w=600&auto=format&fit=crop",
-    status: "confirmed"
-  },
-  {
-    id: 2,
-    title: "Assembleia Geral",
-    date: "20 Mar, 2024",
-    time: "14:30",
-    location: "Sala 105 - Bloco B",
-    category: "Reunião",
-    categoryColor: "blue",
-    description: "Discussão sobre o orçamento anual e pautas trazidas pelos representantes.",
-    longDescription: "Esta é a reunião mais importante do semestre. Discutiremos a alocação de verbas para os projetos estudantis, reformas no diretório e a organização da calourada. Sua voz é fundamental para decidir o futuro do nosso campus.",
-    status: "confirmed"
-  },
-  {
-    id: 3,
-    title: "Cine Debate: IA na Educação",
-    date: "05 Abr, 2024",
-    time: "18:00",
-    location: "Anfiteatro",
-    category: "Cultural",
-    categoryColor: "pink",
-    description: "Exibição de documentário seguido de roda de conversa.",
-    longDescription: "Vamos assistir ao documentário 'AlphaGo' e debater os impactos da Inteligência Artificial no processo de aprendizado e no futuro das profissões. O evento contará com a presença de professores convidados da área de filosofia e computação. Pipoca garantida!",
-    status: "pending"
-  },
-  {
-    id: 4,
-    title: "Campeonato Interclasses",
-    date: "12 Abr, 2024",
-    time: "10:00",
-    location: "Ginásio Poliesportivo",
-    category: "Esportes",
-    categoryColor: "orange",
-    description: "Futsal, Vôlei e Xadrez. Inscreva seu time na sede do D.A.",
-    longDescription: "O momento de mostrar quem manda na quadra chegou. As inscrições custam 1kg de alimento não perecível por atleta. Todo o arrecadado será doado para instituições locais. Venha torcer pela sua turma!",
-    image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=600&auto=format&fit=crop",
-    status: "confirmed"
-  },
-  {
-    id: 5,
-    title: "Workshop de Python",
-    date: "25 Abr, 2024",
-    time: "13:00",
-    location: "Lab. Informática 3",
-    category: "Acadêmico",
-    categoryColor: "green",
-    description: "Automação de tarefas simples. Trazer notebook.",
-    longDescription: "Aprenda a automatizar planilhas, enviar emails automáticos e fazer web scraping básico. Nível iniciante, não é necessário conhecimento prévio de programação, apenas lógica básica. Vagas limitadas.",
-    status: "confirmed"
+const dbToUiStatus = (s: string | null | undefined): EventItem["status"] => {
+  if (!s) return "confirmed"
+  switch (s) {
+    case "published":
+      return "confirmed"
+    case "draft":
+      return "pending"
+    case "archived":
+      return "canceled"
+    default:
+      return "confirmed"
   }
-];
+}
+
+const uiToDbStatus = (s: string | undefined): string => {
+  if (!s) return "published"
+  switch (s) {
+    case "confirmed":
+      return "published"
+    case "pending":
+      return "draft"
+    case "canceled":
+      return "archived"
+    default:
+      return s
+  }
+}
+
+const deriveCategoryColor = (category?: string) => {
+  if (!category) return "purple"
+  const c = category.toLowerCase()
+  if (c.includes("workshop") || c.includes("work")) return "blue"
+  if (c.includes("reuni") || c.includes("assembleia") || c.includes("meeting")) return "purple"
+  if (c.includes("cine") || c.includes("palestra") || c.includes("pales")) return "pink"
+  if (c.includes("esporte") || c.includes("festa") || c.includes("social")) return "orange"
+  if (c.includes("acad") || c.includes("curso") || c.includes("workshop")) return "green"
+  return "purple"
+}
+
+const formatDateDisplay = (d: string | null | undefined) => {
+  if (!d) return ""
+  const dt = new Date(d)
+  try {
+    return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })
+  } catch {
+    return String(d)
+  }
+}
+
+const formatTimeDisplay = (start: string | null | undefined, end: string | null | undefined) => {
+  if (!start) return ""
+  if (!end) return start
+  return `${start} - ${end}`
+}
+
+export interface CreateEventInput {
+  title: string
+  description?: string
+  longDescription?: string
+  eventDate?: string // Data início
+  endDate?: string | null // Data término
+  startTime?: string
+  endTime?: string
+  location?: string
+  category?: string
+  image?: string
+  status?: EventItem["status"]
+}
 
 export async function getEvents(): Promise<EventItem[]> {
-  // Simula um delay de 500ms para parecer uma requisição real
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return MOCK_DB;
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("status", "published")
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Erro ao buscar eventos:", error)
+    return []
+  }
+
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    longDescription: row.long_description || row.description || "",
+    date: formatDateDisplay(row.event_date),
+    time: formatTimeDisplay(row.event_time, row.end_time),
+    location: row.location,
+    category: row.category,
+    categoryColor: deriveCategoryColor(row.category),
+    image: row.image_url || null,
+    image_url: row.image_url || null,
+    status: dbToUiStatus(row.status),
+    event_date: row.event_date,
+    event_time: row.event_time,
+    end_date: row.end_date,
+    end_time: row.end_time,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }))
+}
+
+export async function createEvent(payload: CreateEventInput) {
+  const today = new Date().toISOString().split("T")[0]
+
+  const insertRow: any = {
+    title: payload.title,
+    description: payload.description || null,
+    long_description: payload.longDescription || payload.description || null,
+    event_date: payload.eventDate || today, // default to today
+    event_time: payload.startTime || null,
+    end_date: payload.endDate || null, // separate end_date field
+    end_time: payload.endTime || null,
+    location: payload.location || null,
+    category: payload.category || null,
+    image_url: payload.image || null,
+    status: uiToDbStatus(payload.status),
+  }
+
+  const { data, error } = await supabase.from("events").insert(insertRow).select().single()
+
+  if (error) {
+    console.error("createEvent error:", error)
+    throw error
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    longDescription: data.long_description,
+    date: formatDateDisplay(data.event_date),
+    time: formatTimeDisplay(data.event_time, data.end_time),
+    location: data.location,
+    category: data.category,
+    categoryColor: deriveCategoryColor(data.category),
+    image: data.image_url,
+    image_url: data.image_url,
+    status: dbToUiStatus(data.status),
+    event_date: data.event_date,
+    event_time: data.event_time,
+    end_date: data.end_date,
+    end_time: data.end_time,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }
+}
+
+export async function updateEvent(id: string, payload: Partial<CreateEventInput>) {
+  const updateRow: any = {}
+
+  if (payload.title !== undefined) updateRow.title = payload.title
+  if (payload.description !== undefined) updateRow.description = payload.description
+  if (payload.longDescription !== undefined) updateRow.long_description = payload.longDescription
+  if (payload.eventDate !== undefined) updateRow.event_date = payload.eventDate
+  if (payload.endDate !== undefined) updateRow.end_date = payload.endDate // handle end_date
+  if (payload.startTime !== undefined) updateRow.event_time = payload.startTime
+  if (payload.endTime !== undefined) updateRow.end_time = payload.endTime
+  if (payload.location !== undefined) updateRow.location = payload.location
+  if (payload.category !== undefined) updateRow.category = payload.category
+  if (payload.image !== undefined) updateRow.image_url = payload.image
+  if (payload.status !== undefined) updateRow.status = uiToDbStatus(payload.status)
+
+  updateRow.updated_at = new Date().toISOString()
+
+  const { data, error } = await supabase.from("events").update(updateRow).eq("id", id).select().single()
+
+  if (error) {
+    console.error("updateEvent error:", error)
+    throw error
+  }
+
+  return {
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    longDescription: data.long_description,
+    date: formatDateDisplay(data.event_date),
+    time: formatTimeDisplay(data.event_time, data.end_time),
+    location: data.location,
+    category: data.category,
+    categoryColor: deriveCategoryColor(data.category),
+    image: data.image_url,
+    image_url: data.image_url,
+    status: dbToUiStatus(data.status),
+    event_date: data.event_date,
+    event_time: data.event_time,
+    end_date: data.end_date,
+    end_time: data.end_time,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  }
+}
+
+export async function deleteEvent(id: string) {
+  const { error } = await supabase.from("events").delete().eq("id", id)
+
+  if (error) {
+    console.error("deleteEvent error:", error)
+    throw error
+  }
 }

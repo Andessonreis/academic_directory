@@ -14,7 +14,7 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: "Eventos", href: "#eventos" },
   { label: "Calendário", href: "#calendario" },
-  { label: "Time", href: "#time" },
+  { label: "Time", href: "/team" },
   { label: "Contato", href: "#contato", isExternal: true },
 ]
 

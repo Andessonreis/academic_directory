@@ -277,6 +277,19 @@ export default function HeroGeometric({
   title1?: string
   subtitle?: string
 }) {
+  const [isDesktop, setIsDesktop] = useState(false)
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768)
+    }
+
+    checkDesktop()
+
+    window.addEventListener('resize', checkDesktop)
+    return () => window.removeEventListener('resize', checkDesktop)
+  }, [])
+
   const fadeUpVariants: Variants = {
     hidden: {
       opacity: 0,
@@ -322,7 +335,7 @@ export default function HeroGeometric({
             />
           }
         >
-          <Bear3D />
+          {isDesktop && <Bear3D />}
         </Suspense>
       </div>
 
