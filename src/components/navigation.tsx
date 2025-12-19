@@ -12,10 +12,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "Eventos", href: "#eventos" },
-  { label: "Calendário", href: "#calendario" },
+  //{ label: "Eventos", href: "/" },
+  //{ label: "Calendário", href: "/calendario" },
   { label: "Time", href: "/team" },
-  { label: "Contato", href: "#contato", isExternal: true },
+  { label: "Comunidade", href: "/comunidade" },
+  { label: "Carteirinha", href: "/carteirinha" },
+  { label: "Ouvidoria", href: "/ouvidoria" },
 ]
 
 export default function Navigation() {
@@ -102,7 +104,7 @@ export default function Navigation() {
 
 function NavLink({ item }: { item: NavItem }) {
   return (
-    <a
+    <Link
       href={item.href}
       className="text-sm font-medium text-white/70 hover:text-white transition-colors flex items-center gap-1 group"
     >
@@ -113,22 +115,25 @@ function NavLink({ item }: { item: NavItem }) {
           className="opacity-50 group-hover:opacity-100 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all"
         />
       )}
-    </a>
+    </Link>
   )
 }
 
 function MobileNavLink({ item, index, onClick }: { item: NavItem; index: number; onClick: () => void }) {
   return (
-    <motion.a
+    <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay: index * 0.05 }}
-      href={item.href}
-      onClick={onClick}
-      className="text-lg font-medium text-white/80 hover:text-white py-2 flex items-center gap-2"
     >
-      {item.label}
-      {item.isExternal && <ArrowUpRight size={18} className="opacity-50" />}
-    </motion.a>
+      <Link
+        href={item.href}
+        onClick={onClick}
+        className="text-lg font-medium text-white/80 hover:text-white py-2 flex items-center gap-2 block"
+      >
+        {item.label}
+        {item.isExternal && <ArrowUpRight size={18} className="opacity-50" />}
+      </Link>
+    </motion.div>
   )
 }

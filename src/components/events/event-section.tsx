@@ -153,7 +153,6 @@ export default function EventsSection() {
               return (
                 <motion.div
                   key={event.id}
-                  // ALTERAÇÃO PRINCIPAL AQUI: min-w e max-w ajustados
                   className="min-w-[80vw] max-w-sm md:min-w-[320px] md:max-w-xs snap-center relative group"
                   onClick={() => setSelectedEvent(event)}
                   initial={{ opacity: 0, y: 20 }}
@@ -162,8 +161,7 @@ export default function EventsSection() {
                   transition={{ duration: 0.5 }}
                 >
                   <Card
-                    // ALTURA AJUSTADA PARA FICAR MAIS COMPACTO
-                    className="h-[400px] bg-[#0F0F0F] border-white/5 overflow-hidden relative hover:border-white/20 transition-all duration-300 cursor-pointer flex flex-col group-hover:-translate-y-1 group-hover:shadow-xl"
+                    className="h-[500px] bg-[#0F0F0F] border-white/5 overflow-hidden relative hover:border-white/20 transition-all duration-300 cursor-pointer flex flex-col group-hover:-translate-y-1 group-hover:shadow-xl"
                   >
                     <div className="h-48 w-full relative overflow-hidden shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
                       {event.image_url ? (
@@ -250,7 +248,7 @@ export default function EventsSection() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="relative w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+              className="relative w-full max-w-5xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
             >
               <div className="w-full md:w-2/5 h-64 md:h-auto relative shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
                 {selectedEvent.image_url ? (

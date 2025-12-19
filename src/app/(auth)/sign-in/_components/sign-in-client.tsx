@@ -5,7 +5,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Eye, EyeOff } from "lucide-react"
-import { FcGoogle } from "react-icons/fc"
+//import { FcGoogle } from "react-icons/fc"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useSignIn } from "@/hooks/use-sign-in"
@@ -25,19 +25,6 @@ export function SignInClientPage() {
     await signIn({ email, password })
   }
 
-  const handleGoogleSignIn = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-        },
-      })
-      if (error) throw error
-    } catch (err) {
-      console.error("Google OAuth error:", err)
-    }
-  }
 
   return (
     <div className="min-h-screen w-full bg-[#030303] flex relative overflow-hidden">
@@ -244,20 +231,9 @@ export function SignInClientPage() {
                 <div className="w-full border-t border-gray-800" />
               </div>
               <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-[#030303] text-gray-600">ou continue com</span>
               </div>
             </div>
-
-            {/* Google */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full py-3 px-6 bg-[#13131a]/80 backdrop-blur-sm hover:bg-[#1a1a22] border border-gray-800 text-white text-sm font-medium rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-            >
-              <FcGoogle className="w-5 h-5" />
-              <span>Google</span>
-            </button>
+            {/* Social Login (Google) */}
           </form>
 
           {/* Footer */}

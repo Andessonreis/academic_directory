@@ -43,6 +43,20 @@ export interface TeamMember {
   updatedAt?: string;
 }
 
+export interface CommunityLink {
+  id: string;
+  title: string;
+  description?: string;
+  url: string;
+  type: 'whatsapp' | 'discord' | 'telegram' | 'clube' | 'outro';
+  category: string; // Ex: "Turma ADS 2023", "Clube de Programação", etc
+  icon?: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;

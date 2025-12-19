@@ -18,22 +18,22 @@ const SERVICES = [
   {
     icon: IdCard,
     title: "Carteirinha Digital",
-    description: "Solicite ou renove sua carteira de estudante oficial. Garanta meia-entrada e acesso ao campus.",
-    link: "#carteirinha",
+    description: "Compre o ID Jovem gratuitamente e/ou carteira estudantil paga, veja benefícios e emita direto pelos links oficiais.",
+    link: "/carteirinha",
     color: "purple"
   },
-  {
-    icon: FileText,
-    title: "Transparência",
-    description: "Acesse as atas de reuniões, estatuto do DA e prestações de contas mensais.",
-    link: "#documentos",
-    color: "blue"
-  },
+  /*   {
+      icon: FileText,
+      title: "Transparência",
+      description: "Acesse as atas de reuniões, estatuto do DA e prestações de contas mensais.",
+      link: "#documentos",
+      color: "blue"
+    }, */
   {
     icon: Users,
     title: "Comunidade",
     description: "Links diretos para os grupos de WhatsApp das turmas, Discord do campus e clubes de estudo.",
-    link: "#comunidade",
+    link: "/comunidade",
     color: "green"
   },
   {
@@ -43,20 +43,20 @@ const SERVICES = [
     link: "#ouvidoria",
     color: "pink"
   },
-  {
-    icon: ShoppingBag,
-    title: "Lojinha do DA",
-    description: "Mostre seu orgulho! Camisas, canecas, tirantes e outros produtos exclusivos do seu curso.",
-    link: "#loja",
-    color: "orange"
-  },
-  {
-    icon: Percent,
-    title: "Clube de Descontos",
-    description: "Lista de comércios parceiros na cidade que oferecem descontos para alunos do IFBA.",
-    link: "#parceiros",
-    color: "yellow"
-  },
+  /*   {
+      icon: ShoppingBag,
+      title: "Lojinha do DA",
+      description: "Mostre seu orgulho! Camisas, canecas, tirantes e outros produtos exclusivos do seu curso.",
+      link: "#loja",
+      color: "orange"
+    },
+    {
+      icon: Percent,
+      title: "Clube de Descontos",
+      description: "Lista de comércios parceiros na cidade que oferecem descontos para alunos do IFBA.",
+      link: "#parceiros",
+      color: "yellow"
+    }, */
 ]
 
 function ScatteredDots() {
