@@ -17,34 +17,48 @@ const normalizeOptionalString = (value: string | null | undefined): string | nul
 }
 
 export async function getTeamMembers(): Promise<TeamMember[]> {
-  const { data, error } = await supabase
-    .from("team_members")
-    .select("*")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true })
+  try {
+    const { data, error } = await supabase
+      .from("team_members")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
 
-  if (error) {
+    if (error) {
+      console.error("Erro ao buscar membros do time:", error)
+      console.error("Código do erro:", error.code)
+      console.error("Detalhes:", error.details)
+      console.error("Mensagem:", error.message)
+      return []
+    }
+
+    if (!data) {
+      console.warn("Nenhum dado retornado do Supabase")
+      return []
+    }
+
+    const mapped = data.map((member) => ({
+      id: member.id,
+      name: member.name,
+      role: member.role,
+      bio: member.bio,
+      image: member.image_url,
+      linkedin: member.linkedin_url,
+      github: member.github_url,
+      email: member.email,
+      isActive: member.is_active,
+      displayOrder: member.display_order,
+      createdAt: member.created_at,
+      updatedAt: member.updated_at,
+    }))
+
+    console.log("[v0] Dados mapeados:", mapped)
+    console.log("[v0] Total de membros:", mapped.length)
+    return mapped
+  } catch (error) {
     console.error("Erro ao buscar membros do time:", error)
     return []
   }
-
-  const mapped = data.map((member) => ({
-    id: member.id,
-    name: member.name,
-    role: member.role,
-    bio: member.bio,
-    image: member.image_url,
-    linkedin: member.linkedin_url,
-    github: member.github_url,
-    email: member.email,
-    isActive: member.is_active,
-    displayOrder: member.display_order,
-    createdAt: member.created_at,
-    updatedAt: member.updated_at,
-  }))
-
-  console.log("[v0] Dados mapeados:", mapped)
-  return mapped
 }
 
 export async function createTeamMember(member: Omit<TeamMember, "id" | "createdAt" | "updatedAt">) {

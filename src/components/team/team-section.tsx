@@ -14,9 +14,18 @@ export default function TeamSection() {
 
   useEffect(() => {
     async function loadMembers() {
-      const data = await getTeamMembers()
-      setMembers(data)
-      setLoading(false)
+      try {
+        console.log("[v0] Iniciando carregamento dos membros do time...")
+        const data = await getTeamMembers()
+        console.log("[v0] Dados recebidos:", data)
+        console.log("[v0] Comprimento do array:", data.length)
+        setMembers(data)
+        setLoading(false)
+      } catch (error) {
+        console.error("[v0] Erro ao carregar membros:", error)
+        setMembers([])
+        setLoading(false)
+      }
     }
     loadMembers()
   }, [])
