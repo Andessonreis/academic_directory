@@ -20,10 +20,14 @@ const Bear3D = dynamic(() => import("../3d-bear"), {
   ),
 })
 
-function TypeWriter({ text, delay = 0, speed = 80 }: { text: string; delay?: number; speed?: number }) {
+function TypeWriter({ text, delay = 0, speed = 80, disabled = false }: { text: string; delay?: number; speed?: number; disabled?: boolean }) {
   const [displayText, setDisplayText] = useState("")
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
+
+  if (disabled) {
+    return <span className="relative text-white font-semibold drop-shadow-lg">{text}</span>
+  }
 
   useEffect(() => {
     if (currentIndex >= text.length) {
@@ -181,8 +185,12 @@ function CentralGlow() {
   )
 }
 
-function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
+function AnimatedText({ text, delay = 0, disabled = false }: { text: string; delay?: number; disabled?: boolean }) {
   const words = text.split(" ")
+
+  if (disabled) {
+    return <span className="text-white font-medium drop-shadow-md">{text}</span>
+  }
 
   return (
     <motion.span
@@ -239,7 +247,10 @@ function AnimatedText({ text, delay = 0 }: { text: string; delay?: number }) {
   )
 }
 
-function GlitchText({ text, delay = 0 }: { text: string; delay?: number }) {
+function GlitchText({ text, delay = 0, disabled = false }: { text: string; delay?: number; disabled?: boolean }) {
+  if (disabled) {
+    return <span className="text-white font-bold drop-shadow-xl">{text}</span>
+  }
   return (
     <motion.span
       initial={{ opacity: 0 }}
@@ -290,6 +301,7 @@ export default function HeroGeometric({
   subtitle?: string
 }) {
   const [isDesktop, setIsDesktop] = useState(false)
+  const [prefersReduced, setPrefersReduced] = useState(false)
 
   useEffect(() => {
     const checkDesktop = () => {
@@ -299,7 +311,14 @@ export default function HeroGeometric({
     checkDesktop()
 
     window.addEventListener('resize', checkDesktop)
-    return () => window.removeEventListener('resize', checkDesktop)
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onReduced = () => setPrefersReduced(mq.matches)
+    onReduced()
+    mq.addEventListener?.('change', onReduced)
+    return () => {
+      window.removeEventListener('resize', checkDesktop)
+      mq.removeEventListener?.('change', onReduced)
+    }
   }, [])
 
   const fadeUpVariants: Variants = {
@@ -335,7 +354,7 @@ export default function HeroGeometric({
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#030303] to-[#030303]" />
 
-      <ScatteredDots />
+      {isDesktop && !prefersReduced && <ScatteredDots />}
 
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 md:w-96 md:h-96 z-10">
         <Suspense
@@ -347,11 +366,11 @@ export default function HeroGeometric({
             />
           }
         >
-          {isDesktop && <Bear3D />}
+          {isDesktop && !prefersReduced && <Bear3D />}
         </Suspense>
       </div>
 
-      <CentralGlow />
+      {isDesktop && !prefersReduced && <CentralGlow />}
 
       <div className="relative z-20 container mx-auto px-6 md:px-8">
         <div className="max-w-4xl mx-auto text-center">
@@ -365,13 +384,13 @@ export default function HeroGeometric({
               className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 backdrop-blur-sm mb-6 transition-all duration-300"
             >
               <span className="text-sm text-purple-200 font-semibold drop-shadow-md">
-                <AnimatedText text={badge} delay={0.8} />
+                <AnimatedText text={badge} delay={0.8} disabled={!isDesktop || prefersReduced} />
               </span>
             </motion.div>
           </motion.div>
 
           <motion.div custom={1} variants={fadeUpVariants} initial="hidden" animate="visible">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light mb-8 tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-light mb-8 tracking-tight leading-tight">
               {title1.split(" ").map((word, index) => (
                 <motion.span
                   key={index}
@@ -385,15 +404,15 @@ export default function HeroGeometric({
                   }}
                   style={{ transformOrigin: "center" }}
                 >
-                  <GlitchText text={word} delay={1.2 + index * 0.2} />
+                  <GlitchText text={word} delay={1.2 + index * 0.2} disabled={!isDesktop || prefersReduced} />
                 </motion.span>
               ))}
             </h1>
           </motion.div>
 
           <motion.div custom={2} variants={fadeUpVariants} initial="hidden" animate="visible">
-            <p className="text-lg sm:text-xl text-gray-400 mb-12 leading-relaxed max-w-2xl mx-auto font-medium drop-shadow-md">
-              <AnimatedText text={subtitle} delay={4} />
+            <p className="text-base sm:text-xl text-gray-400 mb-10 leading-relaxed max-w-2xl mx-auto font-medium drop-shadow-md">
+              <AnimatedText text={subtitle} delay={4} disabled={!isDesktop || prefersReduced} />
             </p>
           </motion.div>
         </div>

@@ -2,7 +2,6 @@ import HeroGeometric from "@/components/kokonutui/hero-geometric"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import CursorFollower from "@/components/cursor-follower"
-import ContactSection from "@/components/contact-section"
 import EventsSection from "@/components/events/event-section"
 import StudentHub from "@/components/features"
 import CalendarSection from "@/components/calendar"
@@ -11,7 +10,7 @@ import PixelBlast from "@/components/PixelBlast"
 export default function Home() {
   return (
     <main className="min-h-screen bg-[#030303] text-white selection:bg-green-500/30 relative">
-      <div className="fixed inset-0 z-50 pointer-events-none mix-blend-screen">
+      <div className="fixed inset-0 z-50 pointer-events-none mix-blend-screen hidden md:block">
         <PixelBlast
           variant="circle"
           pixelSize={4}

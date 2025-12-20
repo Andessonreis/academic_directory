@@ -80,23 +80,28 @@ type Dot = {
   size: number
 }
 
-function ScatteredDots() {
+function ScatteredDots({ enabled = true }: { enabled?: boolean }) {
   const [dots, setDots] = useState<Dot[]>([])
 
   useEffect(() => {
+    if (!enabled) {
+      setDots([])
+      return
+    }
     const generateDots = (): Dot[] =>
-      Array.from({ length: 25 }, (_, i) => ({
+      Array.from({ length: 12 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
         delay: Math.random() * 3,
-        duration: 3 + Math.random() * 2,
+        duration: 3 + Math.random() * 1.5,
         size: 0.5 + Math.random() * 1.5,
       }))
 
     setDots(generateDots())
   }, [])
 
+  if (!enabled) return null
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {dots.map((dot) => (
@@ -127,6 +132,22 @@ function ScatteredDots() {
 }
 
 export default function StudentHub() {
+  const [isDesktop, setIsDesktop] = useState(false)
+  const [prefersReduced, setPrefersReduced] = useState(false)
+
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768)
+    checkDesktop()
+    window.addEventListener('resize', checkDesktop)
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const onReduced = () => setPrefersReduced(mq.matches)
+    onReduced()
+    mq.addEventListener?.('change', onReduced)
+    return () => {
+      window.removeEventListener('resize', checkDesktop)
+      mq.removeEventListener?.('change', onReduced)
+    }
+  }, [])
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -138,15 +159,17 @@ export default function StudentHub() {
     },
   }
 
-  const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 26, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      scale: 1,
-      transition: { duration: 0.45, ease: cubicBezier(0.4, 0, 0.2, 1) },
-    },
-  }
+  const cardVariants: Variants = prefersReduced || !isDesktop
+    ? { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.2 } } }
+    : {
+        hidden: { opacity: 0, y: 26, scale: 0.95 },
+        visible: {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          transition: { duration: 0.45, ease: cubicBezier(0.4, 0, 0.2, 1) },
+        },
+      }
 
   const renderCard = (service: (typeof SERVICES)[number], index: number, variant: "carousel" | "grid" = "grid") => {
     const accent = getAccentStyles(service.color as keyof typeof CARD_ACCENTS)
@@ -165,7 +188,7 @@ export default function StudentHub() {
         className={wrapperClasses}
         aria-label={`Ir para ${service.title}`}
       >
-        <Card className="relative flex h-full flex-col overflow-hidden border-white/10 bg-white/[0.03] p-5 transition-all duration-300 hover:border-white/30 hover:bg-white/[0.06]">
+        <Card className="relative flex h-full flex-col overflow-hidden border-white/10 bg-white/[0.03] p-5 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.05]">
           <motion.div
             className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
             style={{ background: `radial-gradient(circle at center, ${accent.glow}, transparent 70%)` }}
@@ -197,8 +220,8 @@ export default function StudentHub() {
   return (
     <section id="servicos" className="relative overflow-hidden bg-[#050505] py-16 sm:py-20 lg:py-24">
       <div className="pointer-events-none absolute inset-0 bg-black">
-        <div className="absolute inset-0 bg-gradient-radial from-blue-900/15 via-transparent to-transparent opacity-50" />
-        <ScatteredDots />
+        <div className="absolute inset-0 bg-gradient-radial from-blue-900/10 via-transparent to-transparent opacity-40" />
+        <ScatteredDots enabled={isDesktop && !prefersReduced} />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
