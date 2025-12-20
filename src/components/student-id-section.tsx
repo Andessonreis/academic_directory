@@ -153,7 +153,7 @@ export default function StudentIdSection() {
                 <div className={`absolute inset-0 bg-gradient-to-br ${option.accent}`} />
                 <div className="relative p-3 sm:p-6 flex flex-col gap-4">
                   <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:items-center">
-                      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/30 aspect-[4/3]">
+                    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/30 aspect-[4/3]">
                       <Image
                         src={option.image}
                         alt={option.name}
