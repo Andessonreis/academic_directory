@@ -21,7 +21,7 @@ export async function getCommunityLinks(): Promise<CommunityLink[]> {
     .order("display_order", { ascending: true })
 
   if (error) {
-    console.error("Erro ao buscar links da comunidade:", error)
+    console.error("Failed to fetch community links:", error)
     return []
   }
 
@@ -47,7 +47,7 @@ export async function getAllCommunityLinks(): Promise<CommunityLink[]> {
     .order("display_order", { ascending: true })
 
   if (error) {
-    console.error("Erro ao buscar todos os links da comunidade:", error)
+    console.error("Failed to fetch all community links:", error)
     return []
   }
 

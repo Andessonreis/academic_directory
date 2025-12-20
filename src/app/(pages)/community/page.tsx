@@ -27,7 +27,7 @@ const TYPE_COLORS = {
   outro: "from-gray-500/20 to-slate-500/5 border-gray-500/30"
 }
 
-export default function ComunidadePage() {
+export default function CommunityPage() {
   const [links, setLinks] = useState<CommunityLink[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
@@ -79,13 +79,13 @@ export default function ComunidadePage() {
           >
             <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/20 mb-6">
               <Users className="text-green-400" size={20} />
-              <span className="text-green-400 text-sm font-medium">Comunidade IFBA</span>
+              <span className="text-green-400 text-sm font-medium">IFBA Comunidade</span>
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold mb-6">
-              Conecte-se com a{" "}
+              Conecte-se com {" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400">
-                Nossa Comunidade
+                IFBA Comunidade
               </span>
             </h1>
 

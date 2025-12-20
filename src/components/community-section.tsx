@@ -116,7 +116,7 @@ export default function CommunitySection() {
   }
 
   return (
-    <section id="comunidade" className="py-24 relative overflow-hidden bg-[#050505]">
+    <section id="community" className="py-24 relative overflow-hidden bg-[#050505]">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-black pointer-events-none">
         <div className="absolute inset-0 bg-gradient-radial from-green-900/10 via-transparent to-transparent opacity-40" />

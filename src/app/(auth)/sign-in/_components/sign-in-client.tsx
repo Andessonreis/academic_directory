@@ -241,7 +241,7 @@ export function SignInClientPage() {
         </div>
       </div>
 
-      <style jsx>{`
+      <style jsx global>{`
         @keyframes gridMove {
           0% {
             transform: translate(0, 0);

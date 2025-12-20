@@ -42,9 +42,15 @@ export default function Home() {
         </div>
 
         <EventsSection />
-        <StudentHub />
+        <div className="hidden lg:block" aria-hidden="false">
+          <StudentHub />
+        </div>
         <CalendarSection />
-        <ContactSection />
+        {/* <ContactSection /> */}
+
+        <div className="relative hidden xl:block" aria-hidden="true">
+          <HeroGeometric badge="Gestão 2025 - 2026" title1="Diretório Acadêmico IFBA" />
+        </div>
         <Footer />
       </div>
     </main>

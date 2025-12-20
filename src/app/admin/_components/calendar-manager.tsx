@@ -11,15 +11,26 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { createCalendarEvent, updateCalendarEvent, deleteCalendarEvent } from "@/services/calendar-service"
+import {
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+  getCalendarCourses,
+  createCalendarCourse,
+  updateCalendarCourse,
+  deleteCalendarCourse,
+} from "@/services/calendar-service"
 import { supabase } from "@/lib/supabase/client"
-import type { CalendarEvent } from "@/types/event"
+import type { CalendarCourse, CalendarEvent } from "@/types/event"
 
 export default function CalendarManager() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null)
+  const [courses, setCourses] = useState<CalendarCourse[]>([])
+  const [isCourseDialogOpen, setIsCourseDialogOpen] = useState(false)
+  const [editingCourse, setEditingCourse] = useState<CalendarCourse | null>(null)
 
   const [formData, setFormData] = useState<Pick<CalendarEvent, "title" | "date" | "weekday" | "type" | "description" | "time" | "location">>({
     title: "",
@@ -31,8 +42,17 @@ export default function CalendarManager() {
     location: "",
   })
 
+  const [courseForm, setCourseForm] = useState<Pick<CalendarCourse, "name" | "pdfUrl" | "isActive" | "isDefault">>({
+    name: "",
+    pdfUrl: "",
+    isActive: true,
+    isDefault: false,
+  })
+  const [courseFile, setCourseFile] = useState<File | null>(null)
+
   useEffect(() => {
     loadEvents()
+    loadCourses()
   }, [])
 
   const loadEvents = async () => {
@@ -55,6 +75,11 @@ export default function CalendarManager() {
     setLoading(false)
   }
 
+  const loadCourses = async () => {
+    const list = await getCalendarCourses()
+    setCourses(list)
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -72,6 +97,39 @@ export default function CalendarManager() {
     }
   }
 
+  const handleCourseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      // Se houver arquivo, faz upload para o Storage e usa a URL pública
+      let finalPdfUrl = courseForm.pdfUrl
+      if (courseFile) {
+        const fileNameSafe = `${Date.now()}-${courseForm.name.replace(/[^a-zA-Z0-9-_]+/g, "-").toLowerCase()}.pdf`
+        const storage = supabase.storage.from("Files")
+        const filePath = `calendario/${fileNameSafe}`
+        const { error: uploadError } = await storage.upload(filePath, courseFile, {
+          contentType: "application/pdf",
+          upsert: true,
+        })
+        if (uploadError) throw uploadError
+
+        const { data: publicData } = storage.getPublicUrl(filePath)
+        finalPdfUrl = publicData.publicUrl
+      }
+
+      if (editingCourse) {
+        await updateCalendarCourse(editingCourse.id, { ...courseForm, pdfUrl: finalPdfUrl })
+      } else {
+        await createCalendarCourse({ ...courseForm, pdfUrl: finalPdfUrl })
+      }
+      setIsCourseDialogOpen(false)
+      resetCourseForm()
+      loadCourses()
+    } catch (error) {
+      console.error("Erro ao salvar calendário de curso:", error)
+      alert("Erro ao salvar calendário de curso")
+    }
+  }
+
   const handleEdit = (event: CalendarEvent) => {
     setEditingEvent(event)
     setFormData({
@@ -86,6 +144,17 @@ export default function CalendarManager() {
     setIsDialogOpen(true)
   }
 
+  const handleEditCourse = (course: CalendarCourse) => {
+    setEditingCourse(course)
+    setCourseForm({
+      name: course.name,
+      pdfUrl: course.pdfUrl,
+      isActive: course.isActive,
+      isDefault: course.isDefault ?? false,
+    })
+    setIsCourseDialogOpen(true)
+  }
+
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir este evento?")) return
     try {
@@ -94,6 +163,17 @@ export default function CalendarManager() {
     } catch (error) {
       console.error("Erro ao deletar evento:", error)
       alert("Erro ao deletar evento")
+    }
+  }
+
+  const handleDeleteCourse = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este calendário de curso?")) return
+    try {
+      await deleteCalendarCourse(id)
+      loadCourses()
+    } catch (error) {
+      console.error("Erro ao deletar calendário de curso:", error)
+      alert("Erro ao deletar calendário de curso")
     }
   }
 
@@ -108,6 +188,17 @@ export default function CalendarManager() {
       time: "",
       location: "",
     })
+  }
+
+  const resetCourseForm = () => {
+    setEditingCourse(null)
+    setCourseForm({
+      name: "",
+      pdfUrl: "",
+      isActive: true,
+      isDefault: false,
+    })
+    setCourseFile(null)
   }
 
   if (loading) {
@@ -156,8 +247,54 @@ export default function CalendarManager() {
         ))}
       </div>
 
+      {/* Cursos / PDFs */}
+      <div className="flex justify-between items-center mt-10 mb-4">
+        <h3 className="text-xl font-semibold text-white">Calendários por Curso (PDF)</h3>
+        <Button
+          onClick={() => {
+            resetCourseForm()
+            setIsCourseDialogOpen(true)
+          }}
+          className="bg-emerald-500 hover:bg-emerald-600"
+        >
+          <Plus className="mr-2" size={18} /> Novo Calendário de Curso
+        </Button>
+      </div>
+
+      <div className="space-y-3">
+        {courses.map((course) => (
+          <Card key={course.id} className="p-4 bg-white/5 border-white/10 flex justify-between items-center">
+            <div>
+              <div className="flex items-center gap-2">
+                <h4 className="text-lg font-semibold text-white">{course.name}</h4>
+                {course.isDefault && (
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-500/30">
+                    Geral
+                  </span>
+                )}
+                {!course.isActive && (
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-white/10 text-white/60 border border-white/20">
+                    Inativo
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-white/60 break-words mt-1">{course.pdfUrl}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleEditCourse(course)}>
+                <Edit size={14} />
+              </Button>
+              <Button size="sm" variant="destructive" onClick={() => handleDeleteCourse(course.id)}>
+                <Trash2 size={14} />
+              </Button>
+            </div>
+          </Card>
+        ))}
+        {courses.length === 0 && <p className="text-sm text-white/50">Nenhum calendário de curso cadastrado.</p>}
+      </div>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#111] border-white/10 text-white max-w-2xl">
+        <DialogContent className="bg-[#0a0a0a] border-white/15 text-white max-w-2xl">
           <DialogHeader>
             <DialogTitle>{editingEvent ? "Editar Evento" : "Novo Evento"}</DialogTitle>
           </DialogHeader>
@@ -248,6 +385,74 @@ export default function CalendarManager() {
               </Button>
               <Button type="submit" className="bg-green-500 hover:bg-green-600">
                 {editingEvent ? "Atualizar" : "Criar"} Evento
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCourseDialogOpen} onOpenChange={setIsCourseDialogOpen}>
+        <DialogContent className="bg-[#0a0a0a] border-white/15 text-white max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editingCourse ? "Editar calendário de curso" : "Novo calendário de curso"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCourseSubmit} className="space-y-4">
+            <div>
+              <Label>Nome do Curso</Label>
+              <Input
+                value={courseForm.name}
+                onChange={(e) => setCourseForm((prev) => ({ ...prev, name: e.target.value }))}
+                required
+                className="bg-white/5 border-white/15 text-white"
+                placeholder="Ex: Engenharia de Computação"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label>URL do PDF (opcional)</Label>
+                <Input
+                  value={courseForm.pdfUrl}
+                  onChange={(e) => setCourseForm((prev) => ({ ...prev, pdfUrl: e.target.value }))}
+                  className="bg-white/5 border-white/15 text-white"
+                  placeholder="https://.../calendario.pdf"
+                />
+              </div>
+              <div>
+                <Label>Upload de PDF (opcional)</Label>
+                <Input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setCourseFile(e.target.files?.[0] ?? null)}
+                  className="bg-white/5 border-white/15 text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:bg-white/10 file:text-white"
+                />
+                <p className="text-xs text-white/40 mt-1">Você pode informar uma URL ou enviar um arquivo PDF.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 text-sm text-white/80">
+                <input
+                  type="checkbox"
+                  checked={courseForm.isActive}
+                  onChange={(e) => setCourseForm((prev) => ({ ...prev, isActive: e.target.checked }))}
+                />
+                Ativo
+              </label>
+              <label className="flex items-center gap-2 text-sm text-white/80">
+                <input
+                  type="checkbox"
+                  checked={courseForm.isDefault}
+                  onChange={(e) => setCourseForm((prev) => ({ ...prev, isDefault: e.target.checked }))}
+                />
+                Marcar como padrão (PDF geral)
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setIsCourseDialogOpen(false)}>
+                Cancelar
+              </Button>
+              <Button type="submit" className="bg-emerald-500 hover:bg-emerald-600">
+                {editingCourse ? "Atualizar" : "Criar"}
               </Button>
             </div>
           </form>

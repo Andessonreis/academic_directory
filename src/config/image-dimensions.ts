@@ -1,6 +1,6 @@
 /**
  * DIMENSÕES PADRÃO DE IMAGENS DO PROJETO
- * 
+ *
  * Ao adicionar imagens, respeite estas proporções para melhor visualização
  */
 
@@ -31,7 +31,7 @@ export const IMAGE_DIMENSIONS = {
     }
   },
 
-  // Comunidade - Links
+  // Community - Links
   community: {
     icon: {
       width: 64,
@@ -60,12 +60,12 @@ export const IMAGE_DIMENSIONS = {
 
 /**
  * RECOMENDAÇÕES TÉCNICAS:
- * 
+ *
  * 1. FORMATO: Use WebP para melhor compressão, PNG para transparência, JPG para fotos
  * 2. QUALIDADE: 80-90% de qualidade (bom balanço entre tamanho e qualidade)
  * 3. OTIMIZAÇÃO: Comprima antes de fazer upload
  * 4. PROPORÇÃO: Mantenha a proporção correta para evitar distorção
- * 
+ *
  * FERRAMENTAS RECOMENDADAS:
  * - TinyPNG/TinyJPG: https://tinypng.com/
  * - ImageMagick: para resize em lote

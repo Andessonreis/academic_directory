@@ -15,9 +15,9 @@ const NAV_ITEMS: NavItem[] = [
   //{ label: "Eventos", href: "/" },
   //{ label: "Calendário", href: "/calendario" },
   { label: "Time", href: "/team" },
-  { label: "Comunidade", href: "/comunidade" },
-  { label: "Carteirinha", href: "/carteirinha" },
-  { label: "Ouvidoria", href: "/ouvidoria" },
+  { label: "Comunidade", href: "/community" },
+  { label: "Central do Estudante", href: "/student-id" },
+  { label: "Feedback", href: "/feedback" },
 ]
 
 export default function Navigation() {

@@ -22,14 +22,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return
         }
 
-        // Verificar se o usuário é admin
-        const { data: userRole } = await supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .single()
+        // Verificar se o usuário é admin via RPC (evita RLS 403)
+        const { data: isAdmin } = await supabase.rpc("is_admin")
 
-        if (userRole?.role !== "admin") {
+        if (!isAdmin) {
           redirect("/")
           return
         }

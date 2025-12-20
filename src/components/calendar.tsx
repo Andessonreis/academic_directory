@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card } from "@/components/ui/card"
-import { Calendar, Clock, Download, MapPin, AlertCircle, FileWarning, PartyPopper } from "lucide-react"
+import { Calendar, Clock, Download, MapPin, AlertCircle, FileWarning, PartyPopper, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getCalendarCourses } from "@/services/calendar-service"
+import type { CalendarCourse } from "@/types/event"
 
 interface CalendarEvent {
   id: number | string
@@ -97,6 +99,8 @@ export default function CalendarSection() {
   const [filter, setFilter] = useState<"all" | "deadline" | "holiday" | "event">("all")
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
+  const [courses, setCourses] = useState<CalendarCourse[]>([])
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("")
 
   useEffect(() => {
     const fetchAndFilterEvents = async () => {
@@ -167,45 +171,94 @@ export default function CalendarSection() {
     fetchAndFilterEvents()
   }, [])
 
+  useEffect(() => {
+    const loadCourses = async () => {
+      const list = await getCalendarCourses()
+      setCourses(list)
+      if (list.length) {
+        const defaultCourse = list.find((c) => c.isDefault)
+        setSelectedCourseId((defaultCourse ?? list[0]).id)
+      }
+    }
+    loadCourses()
+  }, [])
+
   const filteredEvents = events.filter(event => {
     if (filter === "all") return true
     return event.type === filter
   })
 
+  const selectedCourse = courses.find((c) => c.id === selectedCourseId)
+  const generalPdf = courses.find((c) => c.isDefault) ?? courses[0]
+
+  const handleDownloadCourse = (course?: CalendarCourse) => {
+    const target = course ?? selectedCourse
+    if (!target?.pdfUrl) return alert("Nenhum PDF configurado para este curso.")
+    window.open(target.pdfUrl, "_blank")
+  }
+
   return (
-    <section id="calendario" className="py-24 relative bg-[#030303] overflow-hidden">
-      <div className="container mx-auto px-4 relative z-10">
+    <section id="calendario" className="relative overflow-hidden bg-[#030303] py-16 sm:py-20 lg:py-24">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(16,185,129,0.08),transparent_60%)]" />
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
 
         {/* Cabeçalho */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-          <div>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Calendário <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Institucional</span>
+        <div className="mb-10 flex flex-col gap-8 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300/80">Agenda Campus</p>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-5xl">
+              Calendário <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Institucional</span>
             </h2>
-            <p className="text-white/60 max-w-xl text-lg">
-              Datas oficiais que afetam todos os cursos. Fique atento aos prazos da secretaria e feriados.
+            <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+              Eventos, feriados e prazos oficiais do IFBA Irecê. Tudo organizado por curso e pronto para baixar.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            <select className="px-4 py-3 bg-white/5 border border-white/10 rounded-lg text-white/70 hover:border-emerald-500/50 transition-colors focus:outline-none focus:border-emerald-500 cursor-pointer appearance-none">
-              <option>Baixar Calendário: Selecione o Curso</option>
-              <option>Engenharia de Computação</option>
-              <option>Engenharia Elétrica</option>
-              <option>Técnico em Informática</option>
-              <option>Técnico em Edificações</option>
-            </select>
+          <div className="flex flex-col gap-4 rounded-2xl bg-white/[0.03] p-4 sm:flex-row sm:items-center lg:bg-transparent lg:p-0">
+            <div className="min-w-0 flex-1">
+              <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.2em] text-white/50">Escolha o curso</label>
+              <div className="relative">
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  className="w-full appearance-none rounded-xl border border-emerald-500/40 bg-[#0c0c0c] px-4 py-3 pr-10 text-sm text-white/80 outline-none transition-colors hover:border-emerald-400 focus:border-emerald-300"
+                >
+                  <option value="" disabled>
+                    Baixar Calendário: Selecione o Curso
+                  </option>
+                  {courses.map((course) => (
+                    <option key={course.id} value={course.id} className="bg-[#0c0c0c] text-white">
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
+              </div>
+            </div>
 
-            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 rounded-lg text-emerald-400 transition-all group whitespace-nowrap">
-              <Download size={20} className="group-hover:scale-110 transition-transform" />
-              <span>Baixar PDF</span>
-            </button>
+            <div className="flex flex-col gap-3 sm:w-60">
+              <button
+                onClick={() => handleDownloadCourse()}
+                className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-200 transition-all hover:bg-emerald-500/20"
+              >
+                <Download size={18} />
+                <span>PDF do Curso</span>
+              </button>
+
+              <button
+                onClick={() => handleDownloadCourse(generalPdf)}
+                className="flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-sm font-medium text-white transition-all hover:bg-white/10"
+              >
+                <Download size={18} />
+                <span>PDF Geral</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid gap-6 lg:grid-cols-3 lg:gap-8">
 
-          <div className="lg:col-span-1">
+          <div className="order-2 hidden lg:order-1 lg:col-span-1 lg:block">
             <Card className="p-6 bg-gradient-to-b from-emerald-900/20 to-black border-emerald-500/20 h-full relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-40 transition-opacity">
                 <Calendar size={120} />
@@ -247,9 +300,9 @@ export default function CalendarSection() {
             </Card>
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="order-1 lg:order-2 lg:col-span-2">
 
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+            <div className="mb-6 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {[
                 { id: "all", label: "Todos" },
                 { id: "deadline", label: "Prazos & Secretaria" },
@@ -260,7 +313,7 @@ export default function CalendarSection() {
                   key={tab.id}
                   onClick={() => setFilter(tab.id as any)}
                   className={cn(
-                    "px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap border",
+                    "rounded-full border px-4 py-2 text-center text-sm font-medium transition-all",
                     filter === tab.id
                       ? "bg-white text-black border-white"
                       : "bg-white/5 text-white/60 border-white/5 hover:text-white hover:bg-white/10 hover:border-white/10"
@@ -271,7 +324,7 @@ export default function CalendarSection() {
               ))}
             </div>
 
-            <div className="space-y-3 min-h-[300px]">
+            <div className="space-y-3">
               {loading ? (
                 <div className="space-y-3 opacity-50">
                   {[1, 2, 3].map(i => (
@@ -289,48 +342,67 @@ export default function CalendarSection() {
                       exit={{ opacity: 0, scale: 0.9 }}
                       transition={{ delay: index * 0.05 }}
                     >
-                      <Card className="group p-4 bg-white/[0.02] border-white/[0.05] hover:bg-white/[0.04] hover:border-white/10 transition-all flex flex-col sm:flex-row gap-5 items-start sm:items-center">
-
-                        <div className={cn(
-                          "flex flex-col items-center justify-center w-[60px] h-[60px] rounded-lg border shrink-0",
-                          event.type === 'deadline' ? "bg-amber-500/10 border-amber-500/20 text-amber-400" :
-                            event.type === 'holiday' ? "bg-red-500/10 border-red-500/20 text-red-400" :
-                              "bg-blue-500/10 border-blue-500/20 text-blue-400"
-                        )}>
-                          <span className="text-lg font-bold leading-none">{event.date.split(" ")[0]}</span>
-                          <span className="text-[10px] uppercase font-bold opacity-80">{event.date.split(" ")[1]}</span>
+                      <Card className="group space-y-3 rounded-2xl border-white/5 bg-white/[0.03] p-4 transition-all hover:border-white/15 hover:bg-white/[0.06]">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className={cn(
+                            "flex h-12 w-12 flex-col items-center justify-center rounded-xl border text-sm font-semibold",
+                            event.type === 'deadline'
+                              ? "border-amber-400/60 bg-amber-500/10 text-amber-200"
+                              : event.type === 'holiday'
+                                ? "border-red-400/60 bg-red-500/10 text-red-200"
+                                : "border-blue-400/60 bg-blue-500/10 text-blue-200",
+                          )}>
+                            <span className="text-base leading-none">{event.date.split(" ")[0]}</span>
+                            <span className="text-[11px] uppercase tracking-wide">{event.date.split(" ")[1]}</span>
+                          </div>
+                          <span className="flex-1 text-right text-xs font-semibold uppercase tracking-[0.25em] text-white/40 sm:text-sm sm:tracking-[0.35em]">
+                            {event.weekday}
+                          </span>
                         </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h4 className="text-base font-semibold text-white group-hover:text-emerald-400 transition-colors truncate">
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-lg font-semibold text-white">
                               {event.title}
                             </h4>
                             <span className={cn(
-                              "text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border",
-                              event.type === 'deadline' ? "bg-amber-500/10 border-amber-500/20 text-amber-400" :
-                                event.type === 'holiday' ? "bg-red-500/10 border-red-500/20 text-red-400" :
-                                  "bg-blue-500/10 border-blue-500/20 text-blue-400"
+                              "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                              event.type === 'deadline'
+                                ? "bg-amber-500/15 text-amber-200"
+                                : event.type === 'holiday'
+                                  ? "bg-red-500/15 text-red-200"
+                                  : "bg-blue-500/15 text-blue-200",
                             )}>
                               {event.type === 'deadline' ? 'Prazo' : event.type === 'holiday' ? 'Feriado' : 'Evento'}
                             </span>
-
                             {(event.description.includes("imprensado") || event.description.includes("recesso")) && (
-                              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider border bg-purple-500/10 border-purple-500/20 text-purple-400 flex items-center gap-1">
+                              <span className="flex items-center gap-1 rounded-full bg-purple-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-purple-200">
                                 <PartyPopper size={10} /> Recesso?
                               </span>
                             )}
                           </div>
 
-                          <p className="text-white/50 text-sm line-clamp-2">
+                          <p className="text-sm leading-relaxed text-white/70">
                             {event.description}
                           </p>
-                        </div>
 
-                        <div className="hidden sm:block text-xs font-medium text-white/20 uppercase tracking-widest rotate-90 origin-center w-4 text-center">
-                          {event.weekday.substring(0, 3)}
+                          {(event.time || event.location) && (
+                            <div className="flex flex-wrap gap-4 text-xs text-white/50">
+                              {event.time && (
+                                <span className="inline-flex items-center gap-1">
+                                  <Clock size={12} />
+                                  {event.time}
+                                </span>
+                              )}
+                              {event.location && (
+                                <span className="inline-flex items-center gap-1">
+                                  <MapPin size={12} />
+                                  {event.location}
+                                </span>
+                              )}
+                            </div>
+                          )}
                         </div>
-
                       </Card>
                     </motion.div>
                   ))}

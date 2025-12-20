@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import type { Variants } from "framer-motion"
 import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
-import { useEffect, useState, Suspense, useMemo } from "react"
+import { useEffect, useState, Suspense } from "react"
 import dynamic from "next/dynamic"
 
 const inter = Inter({
@@ -94,9 +94,20 @@ function TypeWriter({ text, delay = 0, speed = 80 }: { text: string; delay?: num
   )
 }
 
+type Dot = {
+  id: number
+  x: number
+  y: number
+  delay: number
+  duration: number
+  size: number
+}
+
 function ScatteredDots() {
-  const dots = useMemo(
-    () =>
+  const [dots, setDots] = useState<Dot[]>([])
+
+  useEffect(() => {
+    const generateDots = (): Dot[] =>
       Array.from({ length: 40 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
@@ -104,9 +115,10 @@ function ScatteredDots() {
         delay: Math.random() * 3,
         duration: 3 + Math.random() * 2,
         size: 0.5 + Math.random() * 1.5,
-      })),
-    [],
-  )
+      }))
+
+    setDots(generateDots())
+  }, [])
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">

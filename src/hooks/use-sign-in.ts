@@ -35,7 +35,7 @@ export function useSignIn(): UseSignInReturn {
       }
 
       // Redirect to dashboard on success
-      router.push("admin/dashboard")
+      router.push("/admin/dashboard")
     } catch (err: any) {
       console.error("Sign in error:", err)
       setError(err.message || "Erro ao fazer login. Verifique suas credenciais.")

@@ -1,30 +1,162 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card } from "@/components/ui/card"
-import {
-  Calendar,
-  MapPin,
-  ArrowRight,
-  Clock,
-  AlertCircle,
-  X,
-  Info,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react"
+import { Calendar, MapPin, ArrowRight, Clock, AlertCircle, X, Info, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { EventItem } from "@/types/event"
 import { getEvents } from "@/services/event-service"
 
+const COLOR_MAP = {
+  purple: {
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
+    border: "border-purple-500/20",
+    gradient: "from-purple-600 to-indigo-600",
+  },
+  pink: {
+    bg: "bg-pink-500/10",
+    text: "text-pink-400",
+    border: "border-pink-500/20",
+    gradient: "from-pink-600 to-rose-600",
+  },
+  blue: {
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+    border: "border-blue-500/20",
+    gradient: "from-blue-600 to-cyan-600",
+  },
+  green: {
+    bg: "bg-green-500/10",
+    text: "text-green-400",
+    border: "border-green-500/20",
+    gradient: "from-emerald-600 to-green-600",
+  },
+  orange: {
+    bg: "bg-orange-500/10",
+    text: "text-orange-400",
+    border: "border-orange-500/20",
+    gradient: "from-orange-600 to-amber-600",
+  },
+} as const
+
+type CategoryOption = {
+  id: string
+  label: string
+}
+
+type EventCardProps = {
+  event: EventItem
+  onSelect: (event: EventItem) => void
+}
+
+const normalizeCategory = (category?: string) => (category?.trim()?.length ? category.trim() : "Outros")
+
+function getColors(color?: string) {
+  if (!color) return COLOR_MAP.purple
+  const key = color.toLowerCase() as keyof typeof COLOR_MAP
+  return COLOR_MAP[key] || COLOR_MAP.purple
+}
+
+function EventCard({ event, onSelect }: EventCardProps) {
+  const colors = getColors(event.categoryColor)
+  const categoryLabel = normalizeCategory(event.category)
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="group h-full cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+      onClick={() => onSelect(event)}
+      role="button"
+      tabIndex={0}
+      aria-label={`Ver detalhes do evento ${event.title}`}
+      onKeyDown={(keyboardEvent) => {
+        if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+          keyboardEvent.preventDefault()
+          onSelect(event)
+        }
+      }}
+    >
+      <Card className="flex h-full flex-col overflow-hidden border-white/5 bg-[#0F0F0F] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-white/20 group-hover:shadow-xl">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+          {event.image_url ? (
+            <>
+              <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0F0F0F] via-transparent to-transparent" />
+              <img
+                src={event.image_url || "/placeholder.svg"}
+                alt={event.title}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+            </>
+          ) : (
+            <div className={cn("flex h-full w-full items-center justify-center bg-gradient-to-br opacity-20", colors.gradient)}>
+              <Calendar size={48} className="text-white/20" />
+            </div>
+          )}
+          <span
+            className={cn(
+              "absolute top-4 left-4 z-20 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wide backdrop-blur-md",
+              colors.bg,
+              colors.text,
+              colors.border,
+            )}
+          >
+            {categoryLabel}
+          </span>
+        </div>
+
+        <div className="flex flex-1 flex-col p-5 sm:p-6">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <h3 className="text-lg font-semibold leading-tight text-white transition-colors group-hover:text-purple-200 sm:text-xl line-clamp-2">
+              {event.title}
+            </h3>
+            {event.status === "pending" && <AlertCircle size={18} className="text-yellow-500" />}
+          </div>
+
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-white/70">
+            <span className="flex items-center gap-2">
+              <Calendar size={14} />
+              {event.event_date}
+            </span>
+            <span className="text-white/30">•</span>
+            <span className="flex items-center gap-2">
+              <Clock size={14} />
+              {event.event_time?.split(" - ")[0] ?? ""}
+            </span>
+          </div>
+
+          <div className="mb-4 flex items-center gap-2 text-sm text-white/70">
+            <MapPin size={14} />
+            <span className="line-clamp-2">{event.location}</span>
+          </div>
+
+          {event.description && (
+            <p className="mb-6 text-sm text-white/60 line-clamp-3">{event.description}</p>
+          )}
+
+          <div className="mt-auto flex items-center justify-between border-t border-white/5 pt-4">
+            <span className="text-xs font-medium uppercase tracking-[0.2em] text-white/50 transition-colors group-hover:text-white">
+              Saiba mais
+            </span>
+            <div className="rounded-full bg-white/10 p-2 text-white transition-all group-hover:bg-white group-hover:text-black">
+              <ArrowRight size={16} />
+            </div>
+          </div>
+        </div>
+      </Card>
+    </motion.article>
+  )
+}
+
 export default function EventsSection() {
-  const scrollRef = useRef<HTMLDivElement>(null)
   const [events, setEvents] = useState<EventItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedEvent, setSelectedEvent] = useState<EventItem | null>(null)
-  const [isPaused, setIsPaused] = useState(false)
+  const [activeCategory, setActiveCategory] = useState("all")
 
   useEffect(() => {
     async function loadData() {
@@ -37,199 +169,93 @@ export default function EventsSection() {
         setIsLoading(false)
       }
     }
+
     loadData()
   }, [])
 
-  const scroll = (direction: "left" | "right") => {
-    if (!scrollRef.current) return
-    const current = scrollRef.current
-    const scrollAmount = direction === "left" ? -350 : 350
-    const isEnd = current.scrollLeft + current.clientWidth >= current.scrollWidth - 10
-    if (direction === "right" && isEnd) {
-      current.scrollTo({ left: 0, behavior: "smooth" })
-    } else {
-      current.scrollBy({ left: scrollAmount, behavior: "smooth" })
-    }
-  }
+  const categoryOptions = useMemo<CategoryOption[]>(() => {
+    const unique = new Set<string>()
+    events.forEach((event) => unique.add(normalizeCategory(event.category)))
+    return [{ id: "all", label: "Todos" }, ...Array.from(unique).map((label) => ({ id: label, label }))]
+  }, [events])
 
   useEffect(() => {
-    if (isPaused || isLoading || selectedEvent) return
-    const interval = setInterval(() => {
-      if (!scrollRef.current) return
-      const current = scrollRef.current
-      const isEnd = current.scrollLeft + current.clientWidth >= current.scrollWidth - 50
-      if (isEnd) {
-        current.scrollTo({ left: 0, behavior: "smooth" })
-      } else {
-        current.scrollBy({ left: 350, behavior: "smooth" })
-      }
-    }, 4000)
-    return () => clearInterval(interval)
-  }, [isPaused, isLoading, selectedEvent])
-
-  const getColors = (color?: string) => {
-    const map: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
-      purple: {
-        bg: "bg-purple-500/10",
-        text: "text-purple-400",
-        border: "border-purple-500/20",
-        gradient: "from-purple-600 to-indigo-600",
-      },
-      pink: {
-        bg: "bg-pink-500/10",
-        text: "text-pink-400",
-        border: "border-pink-500/20",
-        gradient: "from-pink-600 to-rose-600",
-      },
-      blue: {
-        bg: "bg-blue-500/10",
-        text: "text-blue-400",
-        border: "border-blue-500/20",
-        gradient: "from-blue-600 to-cyan-600",
-      },
-      green: {
-        bg: "bg-green-500/10",
-        text: "text-green-400",
-        border: "border-green-500/20",
-        gradient: "from-emerald-600 to-green-600",
-      },
-      orange: {
-        bg: "bg-orange-500/10",
-        text: "text-orange-400",
-        border: "border-orange-500/20",
-        gradient: "from-orange-600 to-amber-600",
-      },
+    if (activeCategory === "all") return
+    const stillExists = events.some((event) => normalizeCategory(event.category) === activeCategory)
+    if (!stillExists) {
+      setActiveCategory("all")
     }
-    return map[color ?? "purple"] || map.purple
-  }
+  }, [events, activeCategory])
+
+  const filteredEvents = useMemo(() => {
+    if (activeCategory === "all") return events
+    return events.filter((event) => normalizeCategory(event.category) === activeCategory)
+  }, [events, activeCategory])
 
   if (isLoading) {
     return (
-      <section className="py-24 bg-[#050505] flex justify-center items-center min-h-[400px]">
+      <section className="flex min-h-[400px] items-center justify-center bg-[#050505] py-24">
         <Loader2 className="animate-spin text-purple-500" size={40} />
       </section>
     )
   }
 
   return (
-    <section id="eventos" className="py-24 relative overflow-hidden bg-[#050505]">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#050505] to-[#050505] pointer-events-none" />
-
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-              Eventos{" "}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">D.A.</span>
+<section id="eventos" className="relative overflow-hidden bg-[#050505] py-16 sm:py-20 lg:py-24">
+      {/* Background (Cores originais mantidas) */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#050505] to-[#050505]" />
+      <div className="container relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mb-10 flex flex-col gap-8 lg:mb-14 lg:flex-row lg:items-end lg:justify-between">
+          <div className="space-y-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-purple-300/80">
+              Vida Estudantil
+            </p>
+            <h2 className="text-2xl font-bold text-white sm:text-3xl lg:text-5xl">
+              Eventos <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">D.A.</span>
             </h2>
-            <p className="text-white/60 text-lg">Clique nos cards para ver detalhes completos.</p>
+            <p className="text-sm leading-relaxed text-white/70 sm:text-base">
+              Escolha uma categoria ou explore todos os eventos disponíveis.
+            </p>
           </div>
 
-          <div className="hidden md:flex gap-3">
-            <button
-              onClick={() => scroll("left")}
-              className="p-3 rounded-full border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30 transition-all active:scale-95"
-              aria-label="Anterior"
+          {events.length > 0 && (
+            <div
+              className="-mx-4 flex w-full gap-3 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-wrap md:overflow-visible"
+              role="tablist"
+              aria-label="Categorias de eventos"
             >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => scroll("right")}
-              className="p-3 rounded-full border border-white/10 bg-white/5 text-white/70 hover:bg-white/10 hover:text-white hover:border-white/30 transition-all active:scale-95"
-              aria-label="Próximo"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
+              {categoryOptions.map((option) => (
+                <button
+                  key={option.id}
+                  role="tab"
+                  aria-selected={activeCategory === option.id}
+                  onClick={() => setActiveCategory(option.id)}
+                  className={cn(
+                    "whitespace-nowrap rounded-full border px-4 py-2 text-sm font-medium transition-all",
+                    activeCategory === option.id
+                      ? "border-white bg-white text-black shadow-lg shadow-purple-500/30"
+                      : "border-white/10 bg-white/5 text-white/70 hover:border-white/30 hover:text-white",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)} className="relative">
-          <div
-            ref={scrollRef}
-            className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-8 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
-          >
-            {events.map((event) => {
-              const colors = getColors(event.categoryColor)
-              return (
-                <motion.div
-                  key={event.id}
-                  className="min-w-[80vw] max-w-sm md:min-w-[320px] md:max-w-xs snap-center relative group"
-                  onClick={() => setSelectedEvent(event)}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Card
-                    className="h-[500px] bg-[#0F0F0F] border-white/5 overflow-hidden relative hover:border-white/20 transition-all duration-300 cursor-pointer flex flex-col group-hover:-translate-y-1 group-hover:shadow-xl"
-                  >
-                    <div className="h-48 w-full relative overflow-hidden shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
-                      {event.image_url ? (
-                        <>
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F0F] to-transparent z-10" />
-                          <img
-                            src={event.image_url || "/placeholder.svg"}
-                            alt={event.title}
-                            className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                          />
-                        </>
-                      ) : (
-                        <div
-                          className={`w-full h-full bg-gradient-to-br ${colors.gradient} opacity-20 relative flex items-center justify-center`}
-                        >
-                          <Calendar size={48} className="text-white/20" />
-                        </div>
-                      )}
-                      <span
-                        className={cn(
-                          "absolute top-4 left-4 z-20 px-3 py-1 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg",
-                          colors.bg,
-                          colors.text,
-                          colors.border,
-                        )}
-                      >
-                        {event.category}
-                      </span>
-                    </div>
-
-                    <div className="p-6 flex flex-col flex-grow">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-xl font-bold text-white group-hover:text-purple-300 transition-colors line-clamp-2 leading-tight min-h-[3.5rem]">
-                          {event.title}
-                        </h3>
-                        {event.status === "pending" && (
-                          <AlertCircle size={18} className="text-yellow-500 shrink-0 ml-2" />
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2 text-white/60 text-sm mb-2">
-                        <Calendar size={14} />
-                        <span>{event.event_date}</span>
-                        <span className="mx-1 text-white/20">|</span>
-                        <Clock size={14} />
-                        <span>{event.event_time?.split(" - ")[0] ?? ""}</span>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-white/60 text-sm mb-4">
-                        <MapPin size={14} />
-                        <span className="truncate">{event.location}</span>
-                      </div>
-
-                      <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
-                        <span className="text-xs font-medium text-white/40 uppercase tracking-wider group-hover:text-white/80 transition-colors">
-                          Saiba mais
-                        </span>
-                        <div className="p-2 rounded-full bg-white/5 group-hover:bg-white group-hover:text-black transition-all">
-                          <ArrowRight size={14} />
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </motion.div>
-              )
-            })}
-            <div className="min-w-[1px] md:hidden" />
-          </div>
+        <div className="mt-6 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {filteredEvents.length > 0 ? (
+            filteredEvents.map((event) => <EventCard key={event.id} event={event} onSelect={setSelectedEvent} />)
+          ) : (
+            <Card className="col-span-full border-white/10 bg-white/5 p-8 text-center text-white/70">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white">
+                <AlertCircle />
+              </div>
+              <h3 className="mt-4 text-2xl font-semibold text-white">Nada por aqui ainda</h3>
+              <p className="mt-2">Não encontramos eventos nessa categoria. Tente outra aba para descobrir mais atividades.</p>
+            </Card>
+          )}
         </div>
       </div>
 
@@ -248,37 +274,36 @@ export default function EventsSection() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ type: "spring", duration: 0.4 }}
-              className="relative w-full max-w-5xl bg-[#111] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+              className="relative flex w-full max-w-5xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-2xl md:flex-row"
             >
-              <div className="w-full md:w-2/5 h-64 md:h-auto relative shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+              <div className="relative h-64 w-full shrink-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 md:h-auto md:w-2/5">
                 {selectedEvent.image_url ? (
                   <>
-                    <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-[#111] to-transparent z-10" />
-                    <img
-                      src={selectedEvent.image_url || "/placeholder.svg"}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
+                    <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#111] via-transparent to-transparent md:bg-gradient-to-r" />
+                    <img src={selectedEvent.image_url || "/placeholder.svg"} alt="" className="h-full w-full object-cover" />
                   </>
                 ) : (
                   <div
-                    className={`w-full h-full bg-gradient-to-br ${getColors(selectedEvent.categoryColor).gradient} opacity-20 relative flex items-center justify-center`}
+                    className={cn(
+                      "flex h-full w-full items-center justify-center bg-gradient-to-br opacity-20",
+                      getColors(selectedEvent.categoryColor).gradient,
+                    )}
                   >
                     <Calendar size={64} className="text-white/10" />
                   </div>
                 )}
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="absolute top-4 right-4 md:hidden p-2 bg-black/50 backdrop-blur rounded-full text-white z-20"
+                  className="absolute top-4 right-4 z-20 rounded-full bg-black/50 p-2 text-white backdrop-blur md:hidden"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              <div className="p-6 md:p-8 flex flex-col overflow-y-auto w-full relative">
+              <div className="relative flex w-full flex-col overflow-y-auto p-6 md:p-8">
                 <button
                   onClick={() => setSelectedEvent(null)}
-                  className="hidden md:block absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
+                  className="absolute right-6 top-6 hidden text-white/40 transition-colors hover:text-white md:block"
                 >
                   <X size={24} />
                 </button>
@@ -286,19 +311,19 @@ export default function EventsSection() {
                 <div className="mb-6">
                   <span
                     className={cn(
-                      "px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider mb-3 inline-block",
+                      "mb-3 inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider",
                       getColors(selectedEvent.categoryColor).bg,
                       getColors(selectedEvent.categoryColor).text,
                       getColors(selectedEvent.categoryColor).border,
                     )}
                   >
-                    {selectedEvent.category}
+                    {normalizeCategory(selectedEvent.category)}
                   </span>
-                  <h2 className="text-3xl font-bold text-white mb-2">{selectedEvent.title}</h2>
-                  <p className="text-white/60">{selectedEvent.description}</p>
+                  <h2 className="text-3xl font-bold text-white">{selectedEvent.title}</h2>
+                  {selectedEvent.description && <p className="mt-2 text-white/60">{selectedEvent.description}</p>}
                 </div>
 
-                <div className="space-y-4 mb-8 bg-white/5 p-4 rounded-xl border border-white/5">
+                <div className="mb-8 space-y-4 rounded-xl border border-white/5 bg-white/5 p-4">
                   <div className="flex items-center gap-3 text-white/80">
                     <Calendar className="text-purple-400" size={20} />
                     <span className="font-medium">{selectedEvent.event_date}</span>
@@ -314,15 +339,17 @@ export default function EventsSection() {
                 </div>
 
                 <div className="prose prose-invert prose-sm mb-8">
-                  <h4 className="text-white font-semibold mb-2 flex items-center gap-2">
+                  <h4 className="mb-2 flex items-center gap-2 text-white">
                     <Info size={16} /> Sobre o evento
                   </h4>
-                  <p className="text-white/70 leading-relaxed">{selectedEvent.longDescription}</p>
+                  <p className="text-white/70">
+                    {selectedEvent.longDescription || "Mais informações em breve. Assim que tivermos novidades, atualizaremos por aqui."}
+                  </p>
                 </div>
 
-                <button className="mt-auto w-full py-3 rounded-lg bg-white text-black font-bold hover:bg-purple-200 transition-colors flex items-center justify-center gap-2">
+{/*                 <button className="mt-auto flex w-full items-center justify-center gap-2 rounded-lg bg-white py-3 font-bold text-black transition-colors hover:bg-purple-200">
                   {selectedEvent.status === "pending" ? "Entrar na Lista de Espera" : "Confirmar Presença"}
-                </button>
+                </button> */}
               </div>
             </motion.div>
           </div>

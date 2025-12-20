@@ -15,10 +15,7 @@ export default function TeamSection() {
   useEffect(() => {
     async function loadMembers() {
       try {
-        console.log("[v0] Iniciando carregamento dos membros do time...")
         const data = await getTeamMembers()
-        console.log("[v0] Dados recebidos:", data)
-        console.log("[v0] Comprimento do array:", data.length)
         setMembers(data)
         setLoading(false)
       } catch (error) {
@@ -39,14 +36,14 @@ export default function TeamSection() {
   }
 
   return (
-    <section id="time" className="py-24 relative overflow-hidden bg-[#050505]">
+    <section id="time" className="py-16 sm:py-20 lg:py-24 relative overflow-hidden bg-[#050505]">
       <div className="container mx-auto px-4 relative z-10">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12 sm:mb-14">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold text-white mb-4"
+            className="text-2xl sm:text-3xl lg:text-5xl font-bold text-white mb-3 sm:mb-4"
           >
             Nosso{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Time</span>
@@ -56,7 +53,7 @@ export default function TeamSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-white/60 text-lg max-w-2xl mx-auto"
+            className="text-white/60 text-sm sm:text-base lg:text-lg max-w-2xl mx-auto"
           >
             Conheça quem faz acontecer.
           </motion.p>
@@ -104,16 +101,24 @@ export default function TeamSection() {
 
       {selectedMember && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
           onClick={() => setSelectedMember(null)}
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-2xl bg-[#111] border border-white/10 rounded-2xl overflow-hidden flex flex-col md:flex-row"
+            className="relative w-full max-w-sm md:max-w-4xl bg-[#111] border border-white/10 rounded-xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
           >
-            <div className="w-full md:w-2/5 h-64 md:h-auto relative">
+            <button
+              onClick={() => setSelectedMember(null)}
+              className="absolute top-3 right-3 z-20 p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              aria-label="Fechar"
+            >
+              <X size={20} />
+            </button>
+
+            <div className="w-full md:w-2/5 h-48 md:h-auto relative flex-shrink-0">
               {selectedMember.image ? (
                 <img
                   src={selectedMember.image || "/placeholder.svg"}
@@ -124,25 +129,29 @@ export default function TeamSection() {
                 <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20" />
               )}
             </div>
-            <div className="p-8 flex-1">
-              <button
-                onClick={() => setSelectedMember(null)}
-                className="absolute top-6 right-6 text-white/40 hover:text-white"
-              >
-                <X size={24} />
-              </button>
-              <h2 className="text-3xl font-bold text-white mb-2">{selectedMember.name}</h2>
-              <p className="text-purple-400 font-bold uppercase tracking-wider mb-6">{selectedMember.role}</p>
-              {selectedMember.bio && <p className="text-white/70 mb-6">{selectedMember.bio}</p>}
-              <div className="flex gap-3">
+            <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 pr-8">{selectedMember.name}</h2>
+              <p className="text-purple-400 font-bold uppercase tracking-wider text-xs md:text-sm mb-4">{selectedMember.role}</p>
+              {selectedMember.bio && (
+                <div className="relative mb-6">
+                  <div className="h-32 sm:h-40 md:h-auto md:flex-1 overflow-y-auto md:overflow-visible pr-2 md:pr-0">
+                    <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed">
+                      {selectedMember.bio}
+                    </p>
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#111] via-[#111]/70 to-transparent md:hidden" />
+                </div>
+              )}
+              <div className="flex gap-2 md:gap-3 mt-auto pt-4">
                 {selectedMember.linkedin && (
                   <a
                     href={`https://linkedin.com/in/${selectedMember.linkedin}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    aria-label="LinkedIn"
                   >
-                    <Linkedin size={20} className="text-white/60" />
+                    <Linkedin size={18} className="text-white/60" />
                   </a>
                 )}
                 {selectedMember.github && (
@@ -150,20 +159,28 @@ export default function TeamSection() {
                     href={`https://github.com/${selectedMember.github}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    aria-label="GitHub"
                   >
-                    <Github size={20} className="text-white/60" />
+                    <Github size={18} className="text-white/60" />
                   </a>
                 )}
                 {selectedMember.email && (
                   <a
                     href={`mailto:${selectedMember.email}`}
-                    className="p-2 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    aria-label="E-mail"
                   >
-                    <Mail size={20} className="text-white/60" />
+                    <Mail size={18} className="text-white/60" />
                   </a>
                 )}
               </div>
+              <button
+                onClick={() => setSelectedMember(null)}
+                className="mt-4 w-full py-2 px-4 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors text-sm font-medium md:hidden"
+              >
+                Fechar
+              </button>
             </div>
           </motion.div>
         </div>

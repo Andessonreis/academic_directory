@@ -21,14 +21,14 @@ const LINK_TYPES = [
   { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
   { value: "discord", label: "Discord", icon: MessageCircle },
   { value: "telegram", label: "Telegram", icon: MessageCircle },
-  { value: "clube", label: "Clube", icon: LinkIcon },
-  { value: "outro", label: "Outro", icon: LinkIcon }
+  { value: "clube", label: "Club", icon: LinkIcon },
+  { value: "outro", label: "Other", icon: LinkIcon }
 ]
 
 const CATEGORIES = [
-  { value: "Turmas", label: "Turmas" },
+  { value: "Turmas", label: "Classes" },
   { value: "Campus", label: "Campus" },
-  { value: "Clubes de Estudo", label: "Clubes de Estudo" }
+  { value: "Clubes de Estudo", label: "Study Clubs" }
 ]
 
 export default function CommunityManager() {
@@ -71,8 +71,8 @@ export default function CommunityManager() {
       resetForm()
       await loadLinks()
     } catch (error) {
-      console.error("Erro ao salvar link:", error)
-      alert("Erro ao salvar link da comunidade")
+      console.error("Failed to save link:", error)
+      alert("Failed to save community link")
     }
   }
 
@@ -92,13 +92,13 @@ export default function CommunityManager() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja excluir este link?")) return
+    if (!confirm("Are you sure you want to delete this link?")) return
     try {
       await deleteCommunityLink(id)
       loadLinks()
     } catch (error) {
-      console.error("Erro ao deletar link:", error)
-      alert("Erro ao deletar link")
+      console.error("Failed to delete link:", error)
+      alert("Failed to delete link")
     }
   }
 
@@ -138,8 +138,8 @@ export default function CommunityManager() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-white">Gerenciar Comunidade</h2>
-          <p className="text-sm text-white/60 mt-1">Links de grupos, Discord, clubes de estudo e mais</p>
+          <h2 className="text-2xl font-bold text-white">Manage Community</h2>
+          <p className="text-sm text-white/60 mt-1">Links for groups, Discord, study clubs, and more</p>
         </div>
         <Button
           onClick={() => {
@@ -149,15 +149,15 @@ export default function CommunityManager() {
           className="bg-green-500 hover:bg-green-600"
         >
           <Plus className="mr-2" size={18} />
-          Novo Link
+          New Link
         </Button>
       </div>
 
       {links.length === 0 ? (
         <Card className="p-12 bg-white/5 border-white/10 text-center">
           <MessageCircle className="mx-auto mb-4 text-white/30" size={48} />
-          <p className="text-white/60">Nenhum link cadastrado ainda</p>
-          <p className="text-sm text-white/40 mt-2">Adicione links de grupos e comunidades</p>
+          <p className="text-white/60">No links registered yet</p>
+          <p className="text-sm text-white/40 mt-2">Add group and community links</p>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -168,7 +168,7 @@ export default function CommunityManager() {
                   {LINK_TYPES.find(t => t.value === link.type)?.label}
                 </div>
                 {!link.isActive && (
-                  <span className="px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400">Inativo</span>
+                  <span className="px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400">Inactive</span>
                 )}
               </div>
 
@@ -187,7 +187,7 @@ export default function CommunityManager() {
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => handleEdit(link)} className="flex-1">
                   <Edit size={14} className="mr-1" />
-                  Editar
+                  Edit
                 </Button>
                 <Button size="sm" variant="destructive" onClick={() => handleDelete(link.id)}>
                   <Trash2 size={14} />
@@ -201,25 +201,25 @@ export default function CommunityManager() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="bg-[#111] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingLink ? "Editar Link" : "Novo Link da Comunidade"}</DialogTitle>
+            <DialogTitle>{editingLink ? "Edit Link" : "New Community Link"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Título *</Label>
+                <Label>Title *</Label>
                 <Input
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   required
                   className="bg-white/5 border-white/10 text-white"
-                  placeholder="Ex: Turma ADS 2023.1"
+                  placeholder="e.g., ADS Class 2023.1"
                 />
               </div>
               <div>
-                <Label>Categoria *</Label>
+                <Label>Category *</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Selecione uma categoria" />
+                    <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
                     {CATEGORIES.map((cat) => (
@@ -233,19 +233,19 @@ export default function CommunityManager() {
             </div>
 
             <div>
-              <Label>Descrição</Label>
+              <Label>Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                 className="bg-white/5 border-white/10 text-white"
                 rows={2}
-                placeholder="Descrição opcional do grupo ou comunidade"
+                placeholder="Optional group or community description"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label>Tipo *</Label>
+                <Label>Type *</Label>
                 <Select value={formData.type} onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}>
                   <SelectTrigger className="bg-white/5 border-white/10 text-white">
                     <SelectValue />
@@ -260,7 +260,7 @@ export default function CommunityManager() {
                 </Select>
               </div>
               <div>
-                <Label>Ordem de Exibição</Label>
+                <Label>Display Order</Label>
                 <Input
                   type="number"
                   value={formData.displayOrder}
@@ -271,7 +271,7 @@ export default function CommunityManager() {
             </div>
 
             <div>
-              <Label>URL do Link *</Label>
+              <Label>Link URL *</Label>
               <Input
                 type="url"
                 value={formData.url}
@@ -281,7 +281,7 @@ export default function CommunityManager() {
                 placeholder="https://chat.whatsapp.com/..."
               />
               <p className="text-xs text-white/40 mt-1">
-                Cole o link de convite completo (WhatsApp, Discord, Telegram, etc)
+                Paste the full invite link (WhatsApp, Discord, Telegram, etc.)
               </p>
             </div>
 
@@ -293,15 +293,15 @@ export default function CommunityManager() {
                 onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                 className="w-4 h-4 rounded"
               />
-              <Label htmlFor="isActive" className="cursor-pointer">Link ativo (visível para usuários)</Label>
+              <Label htmlFor="isActive" className="cursor-pointer">Active link (visible to users)</Label>
             </div>
 
             <div className="flex gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                Cancelar
+                Cancel
               </Button>
               <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600">
-                {editingLink ? "Atualizar" : "Criar"} Link
+                {editingLink ? "Update" : "Create"} Link
               </Button>
             </div>
           </form>

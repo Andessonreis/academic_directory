@@ -48,28 +48,28 @@ export default function AdminDashboard() {
               className="data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-400 text-white/60"
             >
               <Newspaper className="mr-2" size={18} />
-              Eventos
+              Events
             </TabsTrigger>
             <TabsTrigger
               value="team"
               className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-400 text-white/60"
             >
               <Users className="mr-2" size={18} />
-              Time
+              Team
             </TabsTrigger>
             <TabsTrigger
               value="community"
               className="data-[state=active]:bg-green-500/20 data-[state=active]:text-green-400 text-white/60"
             >
               <MessageCircle className="mr-2" size={18} />
-              Comunidade
+              Community
             </TabsTrigger>
             <TabsTrigger
               value="calendar"
               className="data-[state=active]:bg-orange-500/20 data-[state=active]:text-orange-400 text-white/60"
             >
               <Calendar className="mr-2" size={18} />
-              Calendário
+              Calendar
             </TabsTrigger>
           </TabsList>
 

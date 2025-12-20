@@ -54,7 +54,6 @@ export default function TeamManager() {
         displayOrder: m.display_order,
       }))
 
-      console.log("[v0] Membros mapeados:", mapped)
       setMembers(mapped)
     }
     setLoading(false)
@@ -64,30 +63,23 @@ export default function TeamManager() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    console.log("[v0] Iniciando upload da imagem:", file.name)
-
     setUploading(true)
     const fileExt = file.name.split(".").pop()
     const fileName = `${Math.random()}.${fileExt}`
     const filePath = `team/images/${fileName}`
 
-    console.log("[v0] Fazendo upload para:", filePath)
-
     const { error: uploadError } = await supabase.storage.from("Files").upload(filePath, file)
 
     if (uploadError) {
-      console.log("[v0] Erro no upload:", uploadError)
       alert("Erro ao fazer upload da imagem: " + uploadError.message)
       setUploading(false)
       return
     }
 
     const { data } = supabase.storage.from("Files").getPublicUrl(filePath)
-    console.log("[v0] URL pública gerada:", data.publicUrl)
 
     setFormData((prev) => {
       const newData = { ...prev, image: data.publicUrl }
-      console.log("[v0] FormData atualizado com imagem:", newData)
       return newData
     })
     setUploading(false)
@@ -96,16 +88,11 @@ export default function TeamManager() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    console.log("[v0] Submetendo formulário com dados:", formData)
-
     try {
       if (editingMember) {
-        console.log("[v0] Atualizando membro:", editingMember.id)
         await updateTeamMember(editingMember.id, formData)
       } else {
-        console.log("[v0] Criando novo membro")
         const result = await createTeamMember(formData)
-        console.log("[v0] Membro criado:", result)
       }
       setIsDialogOpen(false)
       resetForm()

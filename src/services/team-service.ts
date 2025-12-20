@@ -25,10 +25,6 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
       .order("display_order", { ascending: true })
 
     if (error) {
-      console.error("Erro ao buscar membros do time:", error)
-      console.error("Código do erro:", error.code)
-      console.error("Detalhes:", error.details)
-      console.error("Mensagem:", error.message)
       return []
     }
 
@@ -52,11 +48,9 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
       updatedAt: member.updated_at,
     }))
 
-    console.log("[v0] Dados mapeados:", mapped)
-    console.log("[v0] Total de membros:", mapped.length)
     return mapped
   } catch (error) {
-    console.error("Erro ao buscar membros do time:", error)
+
     return []
   }
 }

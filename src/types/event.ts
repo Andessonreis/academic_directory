@@ -69,3 +69,13 @@ export interface CalendarEvent {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface CalendarCourse {
+  id: string;
+  name: string;
+  pdfUrl: string;
+  isActive: boolean;
+  isDefault?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}

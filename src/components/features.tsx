@@ -11,15 +11,15 @@ import {
   Percent,
   ArrowUpRight
 } from "lucide-react"
-import { useState, useMemo } from "react"
+import { useEffect, useState } from "react"
 
 
 const SERVICES = [
   {
     icon: IdCard,
-    title: "Carteirinha Digital",
-    description: "Compre o ID Jovem gratuitamente e/ou carteira estudantil paga, veja benefícios e emita direto pelos links oficiais.",
-    link: "/carteirinha",
+    title: "Central do Estudante",
+    description: "Explore identificações oficiais institucionais, ative softwares educacionais e profissionais e conecte-se à comunidade IFBA.",
+    link: "/student-id",
     color: "purple"
   },
   /*   {
@@ -32,17 +32,18 @@ const SERVICES = [
   {
     icon: Users,
     title: "Comunidade",
-    description: "Links diretos para os grupos de WhatsApp das turmas, Discord do campus e clubes de estudo.",
-    link: "/comunidade",
+    description: "Acesso direto aos grupos de WhatsApp, servidor do campus no Discord e clubes de estudo.",
+    link: "/community",
     color: "green"
   },
   {
     icon: MessageCircle,
-    title: "Ouvidoria",
-    description: "Espaço seguro para denúncias, sugestões e críticas. Sua identidade pode ser mantida em sigilo.",
-    link: "#ouvidoria",
+    title: "Canal de Feedback",
+    description: "Espaço seguro para sugestões, reclamações, elogios ou relatos anônimos.",
+    link: "/feedback",
     color: "pink"
-  },
+  }
+
   /*   {
       icon: ShoppingBag,
       title: "Lojinha do DA",
@@ -59,9 +60,31 @@ const SERVICES = [
     }, */
 ]
 
+const CARD_ACCENTS = {
+  purple: { icon: "text-purple-300", glow: "rgba(168, 85, 247, 0.18)" },
+  blue: { icon: "text-blue-300", glow: "rgba(59, 130, 246, 0.18)" },
+  green: { icon: "text-green-300", glow: "rgba(34, 197, 94, 0.18)" },
+  pink: { icon: "text-pink-300", glow: "rgba(236, 72, 153, 0.18)" },
+  orange: { icon: "text-orange-300", glow: "rgba(249, 115, 22, 0.2)" },
+  yellow: { icon: "text-yellow-300", glow: "rgba(234, 179, 8, 0.18)" },
+} as const
+
+const getAccentStyles = (color?: keyof typeof CARD_ACCENTS) => CARD_ACCENTS[color ?? "yellow"] ?? CARD_ACCENTS.yellow
+
+type Dot = {
+  id: number
+  x: number
+  y: number
+  delay: number
+  duration: number
+  size: number
+}
+
 function ScatteredDots() {
-  const dots = useMemo(
-    () =>
+  const [dots, setDots] = useState<Dot[]>([])
+
+  useEffect(() => {
+    const generateDots = (): Dot[] =>
       Array.from({ length: 25 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
@@ -69,9 +92,10 @@ function ScatteredDots() {
         delay: Math.random() * 3,
         duration: 3 + Math.random() * 2,
         size: 0.5 + Math.random() * 1.5,
-      })),
-    [],
-  )
+      }))
+
+    setDots(generateDots())
+  }, [])
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -103,122 +127,122 @@ function ScatteredDots() {
 }
 
 export default function StudentHub() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
         staggerChildren: 0.1,
-        delayChildren: 0.2,
+        delayChildren: 0.15,
       },
     },
   }
 
   const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 30, scale: 0.95 },
+    hidden: { opacity: 0, y: 26, scale: 0.95 },
     visible: {
       opacity: 1,
       y: 0,
       scale: 1,
-      transition: { duration: 0.5, ease: cubicBezier(0.4, 0, 0.2, 1) }
+      transition: { duration: 0.45, ease: cubicBezier(0.4, 0, 0.2, 1) },
     },
   }
 
+  const renderCard = (service: (typeof SERVICES)[number], index: number, variant: "carousel" | "grid" = "grid") => {
+    const accent = getAccentStyles(service.color as keyof typeof CARD_ACCENTS)
+    const wrapperClasses = [
+      "group block focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60",
+      variant === "carousel" ? "min-w-[250px] max-w-[280px] snap-center" : "",
+    ]
+      .filter(Boolean)
+      .join(" ")
+
+    return (
+      <motion.a
+        href={service.link}
+        key={`${service.title}-${index}`}
+        variants={cardVariants}
+        className={wrapperClasses}
+        aria-label={`Ir para ${service.title}`}
+      >
+        <Card className="relative flex h-full flex-col overflow-hidden border-white/10 bg-white/[0.03] p-5 transition-all duration-300 hover:border-white/30 hover:bg-white/[0.06]">
+          <motion.div
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            style={{ background: `radial-gradient(circle at center, ${accent.glow}, transparent 70%)` }}
+          />
+
+          <div className="relative z-10 flex flex-col gap-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className={`rounded-xl bg-white/5 p-3 ${accent.icon}`}>
+                <service.icon size={22} />
+              </div>
+              <ArrowUpRight className="text-white/30 transition-colors group-hover:text-white/70" size={18} />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-white sm:text-xl">{service.title}</h3>
+              <p className="text-sm leading-relaxed text-white/65">{service.description}</p>
+            </div>
+
+            <span className="mt-auto inline-flex items-center text-xs font-semibold uppercase tracking-[0.2em] text-white/40 transition-colors group-hover:text-white">
+              Acessar
+              <span className="ml-2 translate-x-0 transition-transform duration-300 group-hover:translate-x-1">→</span>
+            </span>
+          </div>
+        </Card>
+      </motion.a>
+    )
+  }
+
   return (
-    <section id="servicos" className="py-24 relative overflow-hidden bg-[#050505]">
-      {/* Background Effects */}
-      <div className="absolute inset-0 bg-black pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-radial from-blue-900/10 via-transparent to-transparent opacity-40" />
+    <section id="servicos" className="relative overflow-hidden bg-[#050505] py-16 sm:py-20 lg:py-24">
+      <div className="pointer-events-none absolute inset-0 bg-black">
+        <div className="absolute inset-0 bg-gradient-radial from-blue-900/15 via-transparent to-transparent opacity-50" />
         <ScatteredDots />
       </div>
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10">
-        <div className="text-center mb-16">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
+        <div className="mb-12 text-center sm:mb-14">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-3xl md:text-5xl font-bold text-white mb-4"
+            className="text-2xl font-bold text-white sm:text-4xl"
           >
-            Central do <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Estudante</span>
+            Central do <span className="bg-gradient-to-r from-blue-300 to-purple-400 bg-clip-text text-transparent">Estudante</span>
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-white/60 text-lg max-w-2xl mx-auto"
+            className="mx-auto mt-3 max-w-2xl text-sm text-white/65 sm:text-base"
           >
-            Tudo o que você precisa para facilitar sua vida acadêmica em um só lugar.
+            Atalhos rápidos para os serviços mais usados, com foco na navegação suave em qualquer tela.
           </motion.p>
         </div>
 
-        <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-        >
-          {SERVICES.map((service, index) => (
-            <motion.a
-              href={service.link}
-              key={index}
-              variants={cardVariants}
-              onHoverStart={() => setHoveredIndex(index)}
-              onHoverEnd={() => setHoveredIndex(null)}
-              className="block group"
-            >
-              <Card className="h-full p-6 bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 backdrop-blur-sm relative overflow-hidden">
+        <div className="space-y-8">
+          <motion.div
+            className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-4 md:hidden"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.3 }}
+          >
+            {SERVICES.map((service, index) => renderCard(service, index, "carousel"))}
+          </motion.div>
 
-                {/* Hover Gradient Background */}
-                <motion.div
-                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                  style={{
-                    background: `radial-gradient(circle at center, ${service.color === 'purple' ? 'rgba(168, 85, 247, 0.15)' :
-                      service.color === 'blue' ? 'rgba(59, 130, 246, 0.15)' :
-                        service.color === 'green' ? 'rgba(34, 197, 94, 0.15)' :
-                          service.color === 'pink' ? 'rgba(236, 72, 153, 0.15)' :
-                            service.color === 'orange' ? 'rgba(249, 115, 22, 0.15)' :
-                              'rgba(234, 179, 8, 0.15)'
-                      }, transparent 70%)`
-                  }}
-                />
-
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className={`p-3 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors ${service.color === 'purple' ? 'text-purple-400' :
-                      service.color === 'blue' ? 'text-blue-400' :
-                        service.color === 'green' ? 'text-green-400' :
-                          service.color === 'pink' ? 'text-pink-400' :
-                            service.color === 'orange' ? 'text-orange-400' :
-                              'text-yellow-400'
-                      }`}>
-                      <service.icon size={24} />
-                    </div>
-                    <ArrowUpRight className="text-white/20 group-hover:text-white/60 transition-colors" size={20} />
-                  </div>
-
-                  <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-white transition-colors">
-                    {service.title}
-                  </h3>
-
-                  <p className="text-white/50 text-sm leading-relaxed mb-4 group-hover:text-white/70 transition-colors">
-                    {service.description}
-                  </p>
-
-                  <div className="mt-auto">
-                    <span className="text-xs font-medium text-white/30 group-hover:text-white/60 flex items-center gap-1 transition-colors">
-                      Acessar <span className="group-hover:translate-x-1 transition-transform">→</span>
-                    </span>
-                  </div>
-                </div>
-              </Card>
-            </motion.a>
-          ))}
-        </motion.div>
+          <motion.div
+            className="hidden gap-6 md:grid md:grid-cols-2 lg:grid-cols-3"
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+          >
+            {SERVICES.map((service, index) => renderCard(service, index))}
+          </motion.div>
+        </div>
       </div>
     </section>
   )
