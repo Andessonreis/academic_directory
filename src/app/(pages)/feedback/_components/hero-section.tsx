@@ -14,7 +14,9 @@ export default function HeroSection() {
           className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 mb-6"
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          <span className="text-xs text-purple-300 font-medium">Official Channel</span>
+          <span className="text-xs text-purple-300 font-medium">
+            Canal Oficial
+          </span>
         </motion.div>
 
         <motion.h1
@@ -23,10 +25,10 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 md:mb-6 text-balance"
         >
-          <span className="text-white">Feedback Desk</span>
+          <span className="text-white">Central de Feedback</span>
           <br />
           <span className="bg-gradient-to-r from-purple-400 via-violet-400 to-indigo-400 bg-clip-text text-transparent">
-            Student Directory
+            Diretório do Estudante
           </span>
         </motion.h1>
 
@@ -36,7 +38,8 @@ export default function HeroSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="text-white/50 text-base md:text-lg max-w-xl mx-auto mb-8 text-pretty"
         >
-          Your voice matters. Share suggestions, compliments, complaints, or incident reports securely and confidentially.
+          Sua voz importa. Envie sugestões, elogios, reclamações ou relatos de
+          incidentes de forma segura e confidencial.
         </motion.p>
 
         <motion.div
@@ -46,11 +49,14 @@ export default function HeroSection() {
           className="hidden md:flex flex-wrap justify-center gap-3"
         >
           {[
-            { icon: Shield, label: "100% Confidential" },
-            { icon: Clock, label: "Response within 10 days" },
-            { icon: Eye, label: "Anonymous submissions" },
+            { icon: Shield, label: "100% Confidencial" },
+            { icon: Clock, label: "Resposta em até 10 dias" },
+            { icon: Eye, label: "Envios anônimos" },
           ].map((item, i) => (
-            <div key={i} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10">
+            <div
+              key={i}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10"
+            >
               <item.icon className="w-4 h-4 text-purple-400" />
               <span className="text-sm text-white/70">{item.label}</span>
             </div>
