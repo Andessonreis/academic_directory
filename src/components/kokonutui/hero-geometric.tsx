@@ -13,7 +13,7 @@ const inter = Inter({
   variable: "--font-inter",
 })
 
-const Bear3D = dynamic(() => import("../3d-bear_natal"), {
+const Bear3D = dynamic(() => import("../3d-bear"), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full animate-pulse" />
