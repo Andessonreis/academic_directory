@@ -67,10 +67,10 @@ export default function Footer() {
             <h3 className="text-purple-400 font-bold mb-2 uppercase tracking-wider text-sm">Navegação</h3>
             {[
               { name: "Início", href: "/" },
-              { name: "Eventos", href: "#eventos" },
-              { name: "Calendário Acadêmico", href: "#calendario" },
-              { name: "Gestão & Time", href: "#time" },
-              { name: "Documentos", href: "#docs" },
+              { name: "Eventos", href: "/#eventos" },
+              { name: "Calendário Acadêmico", href: "/calendario" },
+              { name: "Gestão & Time", href: "/team" },
+              { name: "Central do Estudante", href: "/student-id" },
             ].map((link, index) => (
               <motion.a
                 key={link.name}

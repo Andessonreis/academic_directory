@@ -12,8 +12,8 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  //{ label: "Eventos", href: "/" },
-  //{ label: "Calendário", href: "/calendario" },
+  { label: "Eventos", href: "/#eventos" },
+  { label: "Calendário", href: "/calendario" },
   { label: "Time", href: "/team" },
   { label: "Comunidade", href: "/community" },
   { label: "Central do Estudante", href: "/student-id" },
@@ -88,12 +88,6 @@ export default function Navigation() {
                   onClick={() => setIsOpen(false)}
                 />
               ))}
-
-              <div className="pt-4 border-t border-white/[0.08] mt-2">
-                <button className="w-full py-3 px-4 rounded-lg border border-white/20 text-white hover:bg-white/5 transition-all text-sm font-medium">
-                  Book a call
-                </button>
-              </div>
             </div>
           </motion.div>
         )}

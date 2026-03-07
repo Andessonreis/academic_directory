@@ -9,7 +9,6 @@ import { Eye, EyeOff } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useSignIn } from "@/hooks/use-sign-in"
-import { supabase } from "@/lib/supabase/client"
 import PixelBlast from "@/components/PixelBlast"
 
 export function SignInClientPage() {
@@ -24,8 +23,6 @@ export function SignInClientPage() {
     e.preventDefault()
     await signIn({ email, password })
   }
-
-
   return (
     <div className="min-h-screen w-full bg-[#030303] flex relative overflow-hidden">
       <div className="fixed inset-0 z-0 pointer-events-none mix-blend-screen">
@@ -240,17 +237,6 @@ export function SignInClientPage() {
           <p className="text-center text-xs text-gray-600 pt-4">Acesso restrito aos membros do Diretório Acadêmico</p>
         </div>
       </div>
-
-      <style jsx global>{`
-        @keyframes gridMove {
-          0% {
-            transform: translate(0, 0);
-          }
-          100% {
-            transform: translate(50px, 50px);
-          }
-        }
-      `}</style>
     </div>
   )
 }
