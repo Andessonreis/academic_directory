@@ -13,6 +13,8 @@ import { createEvent, updateEvent, deleteEvent } from "@/services/event-service"
 import { supabase } from "@/lib/supabase/client"
 import type { EventItem } from "@/types/event"
 
+const STORAGE_BUCKET = "uploads"
+
 const CATEGORY_PRESETS = [
   { name: "Reunião", color: "purple" as const },
   { name: "Workshop", color: "blue" as const },
@@ -127,7 +129,7 @@ export default function EventsManager() {
     const fileName = `event-${Date.now()}.${fileExt}`
     const filePath = `events/${fileName}`
 
-    const { error: uploadError } = await supabase.storage.from("Files").upload(filePath, file)
+    const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(filePath, file)
 
     if (uploadError) {
       alert("Erro ao fazer upload: " + uploadError.message)
@@ -135,7 +137,7 @@ export default function EventsManager() {
       return
     }
 
-    const { data } = supabase.storage.from("Files").getPublicUrl(filePath)
+    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath)
     setFormData((prev) => ({ ...prev, image: data.publicUrl }))
     setUploading(false)
   }

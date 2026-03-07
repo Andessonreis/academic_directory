@@ -23,6 +23,8 @@ import {
 import { supabase } from "@/lib/supabase/client"
 import type { CalendarCourse, CalendarEvent } from "@/types/event"
 
+const STORAGE_BUCKET = "uploads"
+
 export default function CalendarManager() {
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,7 +106,7 @@ export default function CalendarManager() {
       let finalPdfUrl = courseForm.pdfUrl
       if (courseFile) {
         const fileNameSafe = `${Date.now()}-${courseForm.name.replace(/[^a-zA-Z0-9-_]+/g, "-").toLowerCase()}.pdf`
-        const storage = supabase.storage.from("Files")
+        const storage = supabase.storage.from(STORAGE_BUCKET)
         const filePath = `calendario/${fileNameSafe}`
         const { error: uploadError } = await storage.upload(filePath, courseFile, {
           contentType: "application/pdf",

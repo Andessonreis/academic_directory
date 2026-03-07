@@ -14,6 +14,8 @@ import { createTeamMember, updateTeamMember, deleteTeamMember } from "@/services
 import { supabase } from "@/lib/supabase/client"
 import type { TeamMember } from "@/types/event"
 
+const STORAGE_BUCKET = "uploads"
+
 export default function TeamManager() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,7 +70,7 @@ export default function TeamManager() {
     const fileName = `${Math.random()}.${fileExt}`
     const filePath = `team/images/${fileName}`
 
-    const { error: uploadError } = await supabase.storage.from("Files").upload(filePath, file)
+    const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(filePath, file)
 
     if (uploadError) {
       alert("Erro ao fazer upload da imagem: " + uploadError.message)
@@ -76,7 +78,7 @@ export default function TeamManager() {
       return
     }
 
-    const { data } = supabase.storage.from("Files").getPublicUrl(filePath)
+    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(filePath)
 
     setFormData((prev) => {
       const newData = { ...prev, image: data.publicUrl }
