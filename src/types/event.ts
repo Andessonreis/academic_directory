@@ -36,6 +36,7 @@ export interface TeamMember {
   image?: string;
   linkedin?: string;
   github?: string;
+  instagram?: string;
   email?: string;
   isActive: boolean;
   displayOrder: number;

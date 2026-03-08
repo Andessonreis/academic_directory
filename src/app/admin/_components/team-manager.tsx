@@ -34,6 +34,21 @@ const buildGithubUrl = (value: string) => {
   return value.startsWith("http") ? value : `https://github.com/${value}`
 }
 
+const buildInstagramUrl = (value: string) => {
+  if (!value) return ""
+  return value.startsWith("http") ? value : `https://instagram.com/${value}`
+}
+
+function InstagramIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export default function TeamManager() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
@@ -48,6 +63,7 @@ export default function TeamManager() {
     image: "",
     linkedin: "",
     github: "",
+    instagram: "",
     email: "",
     isActive: true,
     displayOrder: 0,
@@ -132,6 +148,7 @@ export default function TeamManager() {
       image: member.image || "",
       linkedin: member.linkedin || "",
       github: member.github || "",
+      instagram: member.instagram || "",
       email: member.email || "",
       isActive: member.isActive,
       displayOrder: member.displayOrder,
@@ -159,6 +176,7 @@ export default function TeamManager() {
       image: "",
       linkedin: "",
       github: "",
+      instagram: "",
       email: "",
       isActive: true,
       displayOrder: 0,
@@ -385,8 +403,11 @@ export default function TeamManager() {
               </div>
 
               <div className="grid gap-4 rounded-2xl border border-white/8 bg-white/[0.02] p-4 sm:grid-cols-2">
+                <div className="sm:col-span-2">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-white/30">Redes sociais <span className="normal-case text-white/20">&mdash; todos opcionais</span></p>
+                </div>
                 <div>
-                  <Label className="mb-2 block">LinkedIn</Label>
+                  <Label className="mb-2 block">LinkedIn <span className="text-white/30 font-normal text-xs">(opcional)</span></Label>
                   <Input
                     value={formData.linkedin}
                     onChange={(e) => setFormData((prev) => ({ ...prev, linkedin: e.target.value }))}
@@ -395,7 +416,7 @@ export default function TeamManager() {
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block">GitHub</Label>
+                  <Label className="mb-2 block">GitHub <span className="text-white/30 font-normal text-xs">(opcional)</span></Label>
                   <Input
                     value={formData.github}
                     onChange={(e) => setFormData((prev) => ({ ...prev, github: e.target.value }))}
@@ -404,7 +425,16 @@ export default function TeamManager() {
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block">Email</Label>
+                  <Label className="mb-2 block">Instagram <span className="text-white/30 font-normal text-xs">(opcional)</span></Label>
+                  <Input
+                    value={formData.instagram}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, instagram: e.target.value }))}
+                    className="border-white/10 bg-white/5 text-white"
+                    placeholder="username"
+                  />
+                </div>
+                <div>
+                  <Label className="mb-2 block">Email <span className="text-white/30 font-normal text-xs">(opcional)</span></Label>
                   <Input
                     type="email"
                     value={formData.email}
@@ -414,7 +444,7 @@ export default function TeamManager() {
                   />
                 </div>
                 <div>
-                  <Label className="mb-2 block">Ordem</Label>
+                  <Label className="mb-2 block">Ordem de exibição</Label>
                   <Input
                     type="number"
                     value={formData.displayOrder}
@@ -487,6 +517,12 @@ export default function TeamManager() {
                         <div className="flex items-center gap-2">
                           <Linkedin size={12} />
                           <span className="truncate">{buildLinkedinUrl(formData.linkedin)}</span>
+                        </div>
+                      )}
+                      {formData.instagram && (
+                        <div className="flex items-center gap-2">
+                          <InstagramIcon size={12} />
+                          <span className="truncate">{buildInstagramUrl(formData.instagram)}</span>
                         </div>
                       )}
                     </div>

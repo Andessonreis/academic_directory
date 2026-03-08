@@ -41,6 +41,7 @@ export async function getTeamMembers(): Promise<TeamMember[]> {
       image: member.image_url,
       linkedin: member.linkedin_url,
       github: member.github_url,
+      instagram: member.instagram_url,
       email: member.email,
       isActive: member.is_active,
       displayOrder: member.display_order,
@@ -61,6 +62,7 @@ export async function createTeamMember(member: Omit<TeamMember, "id" | "createdA
   const normalizedImage = normalizeOptionalString(member.image)
   const normalizedLinkedin = normalizeOptionalString(member.linkedin)
   const normalizedGithub = normalizeOptionalString(member.github)
+  const normalizedInstagram = normalizeOptionalString(member.instagram)
   const normalizedEmail = normalizeOptionalString(member.email)
 
   const { data, error } = await supabase
@@ -70,10 +72,10 @@ export async function createTeamMember(member: Omit<TeamMember, "id" | "createdA
         name: member.name,
         role: member.role,
         bio: normalizedBio,
-        // CORRIGIDO: Usa os nomes das colunas do DB (snake_case) na inserção
         image_url: normalizedImage,
         linkedin_url: normalizedLinkedin,
         github_url: normalizedGithub,
+        instagram_url: normalizedInstagram,
         email: normalizedEmail,
         is_active: member.isActive !== undefined ? member.isActive : true,
         display_order: member.displayOrder || 0,
@@ -98,6 +100,7 @@ export async function updateTeamMember(id: string, member: Partial<TeamMember>) 
 
   if (member.linkedin !== undefined) updateData.linkedin_url = normalizeOptionalString(member.linkedin)
   if (member.github !== undefined) updateData.github_url = normalizeOptionalString(member.github)
+  if (member.instagram !== undefined) updateData.instagram_url = normalizeOptionalString(member.instagram)
   if (member.email !== undefined) updateData.email = normalizeOptionalString(member.email)
 
   if (member.isActive !== undefined) updateData.is_active = member.isActive

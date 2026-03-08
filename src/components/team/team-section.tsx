@@ -7,10 +7,30 @@ import { Linkedin, Github, Mail, X, Loader2 } from "lucide-react"
 import { getTeamMembers } from "@/services/team-service"
 import type { TeamMember } from "@/types/event"
 
+function InstagramIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="0.5" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
 export default function TeamSection() {
   const [members, setMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null)
+
+  // Lock background scroll when modal is open
+  useEffect(() => {
+    if (selectedMember) {
+      document.body.style.overflow = "hidden"
+    } else {
+      document.body.style.overflow = ""
+    }
+    return () => { document.body.style.overflow = "" }
+  }, [selectedMember])
 
   useEffect(() => {
     async function loadMembers() {
@@ -163,6 +183,17 @@ export default function TeamSection() {
                     aria-label="GitHub"
                   >
                     <Github size={18} className="text-white/60" />
+                  </a>
+                )}
+                {selectedMember.instagram && (
+                  <a
+                    href={`https://instagram.com/${selectedMember.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    aria-label="Instagram"
+                  >
+                    <InstagramIcon size={18} />
                   </a>
                 )}
                 {selectedMember.email && (
