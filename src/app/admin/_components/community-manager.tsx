@@ -1,312 +1,439 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Plus, Edit, Trash2, Loader2, Link as LinkIcon, MessageCircle } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEffect, useState } from "react"
 import {
+  getAllCommunityLinks,
   createCommunityLink,
   updateCommunityLink,
   deleteCommunityLink,
-  getAllCommunityLinks
 } from "@/services/community-service"
 import type { CommunityLink } from "@/types/event"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  ExternalLink,
+  Eye,
+  EyeOff,
+} from "lucide-react"
+import { getActiveCourses } from "@/services/course-service"
+import type { Course } from "@/types/event"
 
-const LINK_TYPES = [
-  { value: "whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { value: "discord", label: "Discord", icon: MessageCircle },
-  { value: "telegram", label: "Telegram", icon: MessageCircle },
-  { value: "clube", label: "Club", icon: LinkIcon },
-  { value: "outro", label: "Other", icon: LinkIcon }
+const TYPE_OPTIONS = [
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "discord", label: "Discord" },
+  { value: "telegram", label: "Telegram" },
+  { value: "clube", label: "Clube" },
+  { value: "outro", label: "Outro" },
 ]
 
-const CATEGORIES = [
-  { value: "Turmas", label: "Classes" },
-  { value: "Campus", label: "Campus" },
-  { value: "Clubes de Estudo", label: "Study Clubs" }
-]
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  url: "",
+  type: "whatsapp" as CommunityLink["type"],
+  category: "",
+  icon: "",
+  tags: [] as string[],
+  isActive: true,
+  displayOrder: 0,
+}
 
 export default function CommunityManager() {
   const [links, setLinks] = useState<CommunityLink[]>([])
   const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingLink, setEditingLink] = useState<CommunityLink | null>(null)
-
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    url: "",
-    type: "whatsapp" as "whatsapp" | "discord" | "telegram" | "clube" | "outro",
-    category: "",
-    icon: "",
-    isActive: true,
-    displayOrder: 0
-  })
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([])
 
   useEffect(() => {
     loadLinks()
+    getActiveCourses().then(setAvailableCourses)
   }, [])
 
-  const loadLinks = async () => {
+  async function loadLinks() {
     setLoading(true)
     const data = await getAllCommunityLinks()
     setLinks(data)
     setLoading(false)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (editingLink) {
-        await updateCommunityLink(editingLink.id, formData)
-      } else {
-        await createCommunityLink(formData)
-      }
-      setIsDialogOpen(false)
-      resetForm()
-      await loadLinks()
-    } catch (error) {
-      console.error("Failed to save link:", error)
-      alert("Failed to save community link")
-    }
+  function resetForm() {
+    setForm(EMPTY_FORM)
+    setEditingLink(null)
   }
 
-  const handleEdit = (link: CommunityLink) => {
+  function openEdit(link: CommunityLink) {
     setEditingLink(link)
-    setFormData({
+    setForm({
       title: link.title,
       description: link.description || "",
       url: link.url,
       type: link.type,
       category: link.category,
       icon: link.icon || "",
+      tags: link.tags || [],
       isActive: link.isActive,
-      displayOrder: link.displayOrder
+      displayOrder: link.displayOrder,
     })
     setIsDialogOpen(true)
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this link?")) return
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    try {
+      if (editingLink) {
+        await updateCommunityLink(editingLink.id, form)
+      } else {
+        await createCommunityLink(form)
+      }
+      await loadLinks()
+      setIsDialogOpen(false)
+      resetForm()
+    } catch (err) {
+      console.error("Erro ao salvar link:", err)
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Tem certeza que deseja excluir este link?")) return
     try {
       await deleteCommunityLink(id)
-      loadLinks()
-    } catch (error) {
-      console.error("Failed to delete link:", error)
-      alert("Failed to delete link")
+      await loadLinks()
+    } catch (err) {
+      console.error("Erro ao excluir link:", err)
     }
   }
 
-  const resetForm = () => {
-    setEditingLink(null)
-    setFormData({
-      title: "",
-      description: "",
-      url: "",
-      type: "whatsapp",
-      category: "",
-      icon: "",
-      isActive: true,
-      displayOrder: 0
-    })
-  }
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "whatsapp": return "text-green-400 bg-green-500/10"
-      case "discord": return "text-indigo-400 bg-indigo-500/10"
-      case "telegram": return "text-blue-400 bg-blue-500/10"
-      case "clube": return "text-purple-400 bg-purple-500/10"
-      default: return "text-gray-400 bg-gray-500/10"
+  async function handleToggleActive(link: CommunityLink) {
+    try {
+      await updateCommunityLink(link.id, { isActive: !link.isActive })
+      await loadLinks()
+    } catch (err) {
+      console.error("Erro ao alternar visibilidade:", err)
     }
   }
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="animate-spin text-green-500" size={40} />
-      </div>
-    )
+  const toggleTag = (tag: string) => {
+    setForm((prev) => ({
+      ...prev,
+      tags: prev.tags.includes(tag) ? prev.tags.filter((t) => t !== tag) : [...prev.tags, tag],
+    }))
   }
+
+  const filtered = links.filter(
+    (l) =>
+      l.title.toLowerCase().includes(search.toLowerCase()) ||
+      l.category.toLowerCase().includes(search.toLowerCase())
+  )
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white">Manage Community</h2>
-          <p className="text-sm text-white/60 mt-1">Links for groups, Discord, study clubs, and more</p>
-        </div>
-        <Button
-          onClick={() => {
-            resetForm()
-            setIsDialogOpen(true)
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-lg font-semibold sm:text-xl">
+          Gerenciar Comunidade
+        </h2>
+
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open)
+            if (!open) resetForm()
           }}
-          className="bg-green-500 hover:bg-green-600"
         >
-          <Plus className="mr-2" size={18} />
-          New Link
-        </Button>
+          <DialogTrigger asChild>
+            <Button
+              size="sm"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700"
+              onClick={resetForm}
+            >
+              <Plus size={16} className="mr-1.5" />
+              Novo Link
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg">
+            <DialogHeader>
+              <DialogTitle>
+                {editingLink ? "Editar Link" : "Novo Link"}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+              <div className="space-y-1.5">
+                <Label>Título *</Label>
+                <Input
+                  required
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm({ ...form, title: e.target.value })
+                  }
+                  placeholder="Ex: Grupo ADS 2024"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Descrição</Label>
+                <Textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({ ...form, description: e.target.value })
+                  }
+                  placeholder="Breve descrição do link"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>URL *</Label>
+                <Input
+                  required
+                  type="url"
+                  value={form.url}
+                  onChange={(e) =>
+                    setForm({ ...form, url: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Tipo</Label>
+                  <Select
+                    value={form.type}
+                    onValueChange={(v) =>
+                      setForm({ ...form, type: v as CommunityLink["type"] })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Categoria</Label>
+                  <Input
+                    value={form.category}
+                    onChange={(e) =>
+                      setForm({ ...form, category: e.target.value })
+                    }
+                    placeholder="Ex: Turma ADS"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Ícone (opcional)</Label>
+                  <Input
+                    value={form.icon}
+                    onChange={(e) =>
+                      setForm({ ...form, icon: e.target.value })
+                    }
+                    placeholder="Nome do ícone"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Ordem de exibição</Label>
+                  <Input
+                    type="number"
+                    value={form.displayOrder}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        displayOrder: Number.parseInt(e.target.value) || 0,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              {/* Tags - Público-Alvo */}
+              <div className="space-y-1.5">
+                <Label>Público-Alvo (Tags)</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Geral", "Superior", "Integrado"].map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => toggleTag(tag)}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${form.tags.includes(tag)
+                          ? "border-green-500/40 bg-green-500/10 text-green-400"
+                          : "border-white/10 text-white/30 hover:border-white/20"
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                  {availableCourses.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => toggleTag(c.shortName || c.name)}
+                      className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${form.tags.includes(c.shortName || c.name)
+                          ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
+                          : "border-white/10 text-white/30 hover:border-white/20"
+                        }`}
+                    >
+                      {c.shortName || c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={form.isActive}
+                  onChange={(e) =>
+                    setForm({ ...form, isActive: e.target.checked })
+                  }
+                  className="rounded"
+                />
+                Ativo (visível para os alunos)
+              </label>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                  {editingLink ? "Salvar" : "Criar"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {links.length === 0 ? (
-        <Card className="p-12 bg-white/5 border-white/10 text-center">
-          <MessageCircle className="mx-auto mb-4 text-white/30" size={48} />
-          <p className="text-white/60">No links registered yet</p>
-          <p className="text-sm text-white/40 mt-2">Add group and community links</p>
-        </Card>
+      {/* Search */}
+      <div className="relative">
+        <Search
+          size={16}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por título ou categoria..."
+          className="pl-9 h-9 text-sm"
+        />
+      </div>
+
+      {/* List */}
+      {loading ? (
+        <p className="text-sm text-muted-foreground text-center py-8">
+          Carregando...
+        </p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-8">
+          Nenhum link encontrado.
+        </p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {links.map((link) => (
-            <Card key={link.id} className="p-4 bg-white/5 border-white/10 hover:bg-white/[0.07] transition-colors">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(link.type)}`}>
-                  {LINK_TYPES.find(t => t.value === link.type)?.label}
+        <div className="divide-y rounded-lg border bg-card">
+          {filtered.map((link) => (
+            <div
+              key={link.id}
+              className="flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3"
+            >
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-sm font-medium truncate ${!link.isActive ? "line-through text-muted-foreground" : ""
+                      }`}
+                  >
+                    {link.title}
+                  </span>
+                  <span className="hidden sm:inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground uppercase tracking-wide">
+                    {link.type}
+                  </span>
                 </div>
-                {!link.isActive && (
-                  <span className="px-2 py-0.5 rounded text-xs bg-red-500/20 text-red-400">Inactive</span>
+                {link.category && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {link.category}
+                  </p>
                 )}
               </div>
 
-              <h3 className="text-lg font-semibold text-white mb-1">{link.title}</h3>
-              <p className="text-sm text-purple-400 mb-2">{link.category}</p>
-
-              {link.description && (
-                <p className="text-xs text-white/50 mb-3 line-clamp-2">{link.description}</p>
-              )}
-
-              <div className="flex items-center gap-2 text-xs text-white/40 mb-4">
-                <LinkIcon size={12} />
-                <span className="truncate">{link.url}</span>
-              </div>
-
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => handleEdit(link)} className="flex-1">
-                  <Edit size={14} className="mr-1" />
-                  Edit
+              {/* Actions */}
+              <div className="flex items-center gap-1 shrink-0">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => handleToggleActive(link)}
+                  title={link.isActive ? "Desativar" : "Ativar"}
+                >
+                  {link.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
                 </Button>
-                <Button size="sm" variant="destructive" onClick={() => handleDelete(link.id)}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  asChild
+                >
+                  <a href={link.url} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink size={14} />
+                  </a>
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7"
+                  onClick={() => openEdit(link)}
+                >
+                  <Pencil size={14} />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-red-500 hover:text-red-600"
+                  onClick={() => handleDelete(link.id)}
+                >
                   <Trash2 size={14} />
                 </Button>
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-[#111] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{editingLink ? "Edit Link" : "New Community Link"}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Title *</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                  className="bg-white/5 border-white/10 text-white"
-                  placeholder="e.g., ADS Class 2023.1"
-                />
-              </div>
-              <div>
-                <Label>Category *</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                className="bg-white/5 border-white/10 text-white"
-                rows={2}
-                placeholder="Optional group or community description"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Type *</Label>
-                <Select value={formData.type} onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-white/10 text-white">
-                    {LINK_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Display Order</Label>
-                <Input
-                  type="number"
-                  value={formData.displayOrder}
-                  onChange={(e) => setFormData(prev => ({ ...prev, displayOrder: Number(e.target.value) }))}
-                  className="bg-white/5 border-white/10 text-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <Label>Link URL *</Label>
-              <Input
-                type="url"
-                value={formData.url}
-                onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                required
-                className="bg-white/5 border-white/10 text-white"
-                placeholder="https://chat.whatsapp.com/..."
-              />
-              <p className="text-xs text-white/40 mt-1">
-                Paste the full invite link (WhatsApp, Discord, Telegram, etc.)
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="isActive"
-                checked={formData.isActive}
-                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
-                className="w-4 h-4 rounded"
-              />
-              <Label htmlFor="isActive" className="cursor-pointer">Active link (visible to users)</Label>
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                Cancel
-              </Button>
-              <Button type="submit" className="flex-1 bg-green-500 hover:bg-green-600">
-                {editingLink ? "Update" : "Create"} Link
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

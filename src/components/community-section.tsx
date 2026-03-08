@@ -193,6 +193,14 @@ export default function CommunitySection() {
                             {link.title}
                           </h4>
 
+                          {(link.tags ?? []).length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-2">
+                              {link.tags!.map((tag) => (
+                                <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-white/35 border border-white/[0.08]">{tag}</span>
+                              ))}
+                            </div>
+                          )}
+
                           {link.description && (
                             <p className="text-white/50 text-sm leading-relaxed mb-4 group-hover:text-white/70 transition-colors line-clamp-2">
                               {link.description}

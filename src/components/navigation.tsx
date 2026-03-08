@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 
 interface NavItem {
   label: string
@@ -26,7 +27,7 @@ export default function Navigation() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener("scroll", handleScroll)
+    window.addEventListener("scroll", handleScroll, { passive: true })
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
@@ -44,15 +45,14 @@ export default function Navigation() {
         <div className="flex items-center justify-between h-20">
 
           <Link href="/" className="flex items-center gap-3 group">
-
-            <div className="h-10 bg-white rounded-md p-1.5 flex items-center justify-center group-hover:bg-gray-100 transition-colors shadow-lg shadow-white/5">
-              <img
-                src="/logo-hopper-ifba.png"
-                alt="Logo Hopper IFBA"
-                className="h-full w-auto object-contain"
-              />
-            </div>
-
+            <Image
+              src="/logo-hopper-ifba.png"
+              alt="Logo Hopper IFBA"
+              width={120}
+              height={32}
+              className="h-8 w-auto object-contain brightness-0 invert opacity-85 group-hover:opacity-100 transition-opacity"
+              priority
+            />
           </Link>
 
           <div className="hidden md:flex items-center gap-8">

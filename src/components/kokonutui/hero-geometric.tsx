@@ -2,16 +2,9 @@
 
 import { motion } from "framer-motion"
 import type { Variants } from "framer-motion"
-import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { useEffect, useState, Suspense } from "react"
 import dynamic from "next/dynamic"
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-inter",
-})
 
 const Bear3D = dynamic(() => import("../3d-bear"), {
   ssr: false,
@@ -112,7 +105,7 @@ function ScatteredDots() {
 
   useEffect(() => {
     const generateDots = (): Dot[] =>
-      Array.from({ length: 40 }, (_, i) => ({
+      Array.from({ length: 15 }, (_, i) => ({
         id: i,
         x: Math.random() * 100,
         y: Math.random() * 100,
@@ -349,7 +342,6 @@ export default function HeroGeometric({
     <div
       className={cn(
         "relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-[#030303]",
-        inter.className,
       )}
     >
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-[#030303] to-[#030303]" />

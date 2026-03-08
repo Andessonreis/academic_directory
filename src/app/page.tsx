@@ -1,11 +1,13 @@
+import dynamic from "next/dynamic"
 import HeroGeometric from "@/components/kokonutui/hero-geometric"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import CursorFollower from "@/components/cursor-follower"
 import EventsSection from "@/components/events/event-section"
-import StudentHub from "@/components/features"
 import CalendarSection from "@/components/calendar"
 import PixelBlast from "@/components/PixelBlast"
+
+const StudentHub = dynamic(() => import("@/components/features"))
 
 export default function Home() {
   return (
@@ -40,16 +42,13 @@ export default function Home() {
           <HeroGeometric badge="Gestão 2025 - 2026" title1="Diretório Acadêmico IFBA" />
         </div>
 
-        <EventsSection />
+        <EventsSection maxItems={6} />
         <div className="hidden lg:block" aria-hidden="false">
           <StudentHub />
         </div>
         <CalendarSection />
         {/* <ContactSection /> */}
 
-        <div className="relative hidden xl:block" aria-hidden="true">
-          <HeroGeometric badge="Gestão 2025 - 2026" title1="Diretório Acadêmico IFBA" />
-        </div>
         <Footer />
       </div>
     </main>

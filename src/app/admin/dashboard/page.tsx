@@ -13,6 +13,9 @@ import {
   X,
   Sparkles,
   ShieldCheck,
+  HelpCircle,
+  FileCode,
+  GraduationCap,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -20,6 +23,9 @@ import EventsManager from "../_components/events-manager"
 import TeamManager from "../_components/team-manager"
 import CalendarManager from "../_components/calendar-manager"
 import CommunityManager from "../_components/community-manager"
+import FaqManager from "../_components/faq-manager"
+import PageManager from "../_components/page-manager"
+import CourseManager from "../_components/course-manager"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -54,6 +60,30 @@ const NAV_ITEMS = [
     color: "text-orange-400",
     activeBg: "bg-orange-500/10 border-orange-500/30",
     dot: "bg-orange-400",
+  },
+  {
+    id: "faq",
+    label: "FAQ",
+    icon: HelpCircle,
+    color: "text-amber-400",
+    activeBg: "bg-amber-500/10 border-amber-500/30",
+    dot: "bg-amber-400",
+  },
+  {
+    id: "pages",
+    label: "Páginas",
+    icon: FileCode,
+    color: "text-cyan-400",
+    activeBg: "bg-cyan-500/10 border-cyan-500/30",
+    dot: "bg-cyan-400",
+  },
+  {
+    id: "courses",
+    label: "Cursos",
+    icon: GraduationCap,
+    color: "text-rose-400",
+    activeBg: "bg-rose-500/10 border-rose-500/30",
+    dot: "bg-rose-400",
   },
 ]
 
@@ -232,14 +262,16 @@ export default function AdminDashboard() {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-y-auto p-5 sm:p-7">
+        <main className="flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7">
           {activeTab === "events" && <EventsManager />}
           {activeTab === "team" && <TeamManager />}
           {activeTab === "community" && <CommunityManager />}
           {activeTab === "calendar" && <CalendarManager />}
+          {activeTab === "faq" && <FaqManager />}
+          {activeTab === "pages" && <PageManager />}
+          {activeTab === "courses" && <CourseManager />}
         </main>
       </div>
     </div>
   )
 }
-

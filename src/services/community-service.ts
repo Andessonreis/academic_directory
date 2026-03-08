@@ -33,6 +33,7 @@ export async function getCommunityLinks(): Promise<CommunityLink[]> {
     type: link.type,
     category: link.category,
     icon: link.icon,
+    tags: Array.isArray(link.tags) ? link.tags : [],
     isActive: link.is_active,
     displayOrder: link.display_order,
     createdAt: link.created_at,
@@ -59,6 +60,7 @@ export async function getAllCommunityLinks(): Promise<CommunityLink[]> {
     type: link.type,
     category: link.category,
     icon: link.icon,
+    tags: Array.isArray(link.tags) ? link.tags : [],
     isActive: link.is_active,
     displayOrder: link.display_order,
     createdAt: link.created_at,
@@ -82,6 +84,7 @@ export async function createCommunityLink(
         type: link.type,
         category: link.category,
         icon: normalizedIcon,
+        tags: link.tags || [],
         is_active: link.isActive !== undefined ? link.isActive : true,
         display_order: link.displayOrder || 0,
       },
@@ -102,6 +105,7 @@ export async function updateCommunityLink(id: string, link: Partial<CommunityLin
   if (link.type !== undefined) updateData.type = link.type
   if (link.category !== undefined) updateData.category = link.category
   if (link.icon !== undefined) updateData.icon = normalizeOptionalString(link.icon)
+  if (link.tags !== undefined) updateData.tags = link.tags
   if (link.isActive !== undefined) updateData.is_active = link.isActive
   if (link.displayOrder !== undefined) updateData.display_order = link.displayOrder
 

@@ -40,6 +40,37 @@ const deriveCategoryColor = (category?: string) => {
   return "purple"
 }
 
+function mapEventRow(row: any): EventItem {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    longDescription: row.long_description || row.description || "",
+    date: formatDateDisplay(row.event_date),
+    time: formatTimeDisplay(row.event_time, row.end_time),
+    location: row.location,
+    category: row.category,
+    categoryColor: deriveCategoryColor(row.category),
+    image: row.image_url || null,
+    image_url: row.image_url || null,
+    status: dbToUiStatus(row.status),
+    event_date: row.event_date,
+    event_time: row.event_time,
+    end_date: row.end_date,
+    end_time: row.end_time,
+    is_featured: row.is_featured ?? false,
+    event_type: row.event_type ?? "",
+    registration_type: row.registration_type ?? "none",
+    registration_url: row.registration_url ?? undefined,
+    registration_email_subject: row.registration_email_subject ?? undefined,
+    registration_email_body: row.registration_email_body ?? undefined,
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    hasCustomPage: false,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  } as EventItem
+}
+
 const formatDateDisplay = (d: string | null | undefined) => {
   if (!d) return ""
   const dt = new Date(d)
@@ -60,14 +91,19 @@ export interface CreateEventInput {
   title: string
   description?: string
   longDescription?: string
-  eventDate?: string // Data início
-  endDate?: string | null // Data término
+  eventDate?: string
+  endDate?: string | null
   startTime?: string
   endTime?: string
   location?: string
   category?: string
   image?: string
   status?: EventItem["status"]
+  registrationType?: 'none' | 'external' | 'internal'
+  registrationUrl?: string
+  registrationEmailSubject?: string
+  registrationEmailBody?: string
+  tags?: string[]
 }
 
 export async function getEvents(): Promise<EventItem[]> {
@@ -82,72 +118,80 @@ export async function getEvents(): Promise<EventItem[]> {
     return []
   }
 
-  return (data || []).map((row: any) => ({
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    longDescription: row.long_description || row.description || "",
-    date: formatDateDisplay(row.event_date),
-    time: formatTimeDisplay(row.event_time, row.end_time),
-    location: row.location,
-    category: row.category,
-    categoryColor: deriveCategoryColor(row.category),
-    image: row.image_url || null,
-    image_url: row.image_url || null,
-    status: dbToUiStatus(row.status),
-    event_date: row.event_date,
-    event_time: row.event_time,
-    end_date: row.end_date,
-    end_time: row.end_time,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  }))
+  const events = (data || []).map((row: any) => mapEventRow(row))
+
+  // Check which events have linked custom pages
+  try {
+    const eventIds = events.map((e: EventItem) => e.id)
+    if (eventIds.length > 0) {
+      const { data: pages } = await supabase
+        .from("custom_pages")
+        .select("event_id")
+        .in("event_id", eventIds)
+        .eq("is_published", true)
+      const linkedIds = new Set((pages ?? []).map((p: any) => p.event_id))
+      for (const evt of events) {
+        evt.hasCustomPage = linkedIds.has(evt.id)
+      }
+    }
+  } catch { /* table might not exist yet */ }
+
+  return events
+}
+
+export async function getEventById(id: string): Promise<EventItem | null> {
+  const { data: row, error } = await supabase
+    .from("events")
+    .select("*")
+    .eq("id", id)
+    .single()
+
+  if (error || !row) {
+    console.error("Erro ao buscar evento:", error?.message)
+    return null
+  }
+
+  return mapEventRow(row)
 }
 
 export async function createEvent(payload: CreateEventInput) {
   const today = new Date().toISOString().split("T")[0]
 
-  const insertRow: any = {
+  const baseRow: any = {
     title: payload.title,
     description: payload.description || null,
     long_description: payload.longDescription || payload.description || null,
-    event_date: payload.eventDate || today, // default to today
+    event_date: payload.eventDate || today,
     event_time: payload.startTime || null,
-    end_date: payload.endDate || null, // separate end_date field
+    end_date: payload.endDate || null,
     end_time: payload.endTime || null,
     location: payload.location || null,
     category: payload.category || null,
     image_url: payload.image || null,
     status: uiToDbStatus(payload.status),
+    tags: payload.tags || [],
   }
 
-  const { data, error } = await supabase.from("events").insert(insertRow).select().single()
+  const regFields: any = {
+    registration_type: payload.registrationType || "none",
+    registration_url: payload.registrationUrl || null,
+    registration_email_subject: payload.registrationEmailSubject || null,
+    registration_email_body: payload.registrationEmailBody || null,
+  }
+
+  // Try with registration fields first; fall back without them if columns don't exist yet
+  let { data, error } = await supabase.from("events").insert({ ...baseRow, ...regFields }).select().single()
 
   if (error) {
-    console.error("createEvent error:", error)
-    throw error
+    const { data: d2, error: e2 } = await supabase.from("events").insert(baseRow).select().single()
+    if (e2) {
+      console.error("createEvent error:", e2)
+      throw e2
+    }
+    data = d2
   }
 
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    longDescription: data.long_description,
-    date: formatDateDisplay(data.event_date),
-    time: formatTimeDisplay(data.event_time, data.end_time),
-    location: data.location,
-    category: data.category,
-    categoryColor: deriveCategoryColor(data.category),
-    image: data.image_url,
-    image_url: data.image_url,
-    status: dbToUiStatus(data.status),
-    event_date: data.event_date,
-    event_time: data.event_time,
-    end_date: data.end_date,
-    end_time: data.end_time,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  }
+  return mapEventRow(data)
 }
 
 export async function updateEvent(id: string, payload: Partial<CreateEventInput>) {
@@ -164,36 +208,31 @@ export async function updateEvent(id: string, payload: Partial<CreateEventInput>
   if (payload.category !== undefined) updateRow.category = payload.category
   if (payload.image !== undefined) updateRow.image_url = payload.image
   if (payload.status !== undefined) updateRow.status = uiToDbStatus(payload.status)
+  if (payload.tags !== undefined) updateRow.tags = payload.tags
+  // Registration fields — split so we can fall back if columns don't exist
+  const regKeys: Record<string, any> = {}
+  if (payload.registrationType !== undefined) regKeys.registration_type = payload.registrationType
+  if (payload.registrationUrl !== undefined) regKeys.registration_url = payload.registrationUrl
+  if (payload.registrationEmailSubject !== undefined) regKeys.registration_email_subject = payload.registrationEmailSubject
+  if (payload.registrationEmailBody !== undefined) regKeys.registration_email_body = payload.registrationEmailBody
 
   updateRow.updated_at = new Date().toISOString()
 
-  const { data, error } = await supabase.from("events").update(updateRow).eq("id", id).select().single()
+  let { data, error } = await supabase.from("events").update({ ...updateRow, ...regKeys }).eq("id", id).select().single()
 
-  if (error) {
+  if (error && Object.keys(regKeys).length > 0) {
+    const { data: d2, error: e2 } = await supabase.from("events").update(updateRow).eq("id", id).select().single()
+    if (e2) {
+      console.error("updateEvent error:", e2)
+      throw e2
+    }
+    data = d2
+  } else if (error) {
     console.error("updateEvent error:", error)
     throw error
   }
 
-  return {
-    id: data.id,
-    title: data.title,
-    description: data.description,
-    longDescription: data.long_description,
-    date: formatDateDisplay(data.event_date),
-    time: formatTimeDisplay(data.event_time, data.end_time),
-    location: data.location,
-    category: data.category,
-    categoryColor: deriveCategoryColor(data.category),
-    image: data.image_url,
-    image_url: data.image_url,
-    status: dbToUiStatus(data.status),
-    event_date: data.event_date,
-    event_time: data.event_time,
-    end_date: data.end_date,
-    end_time: data.end_time,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
-  }
+  return mapEventRow(data)
 }
 
 export async function deleteEvent(id: string) {

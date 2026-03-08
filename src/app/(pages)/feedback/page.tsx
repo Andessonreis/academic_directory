@@ -3,6 +3,7 @@
 import { useState, useRef } from "react"
 import { AnimatePresence } from "framer-motion"
 import { toast } from "sonner"
+import Link from "next/link"
 import Footer from "@/components/footer"
 import HeroSection from "./_components/hero-section"
 import ProgressIndicator from "./_components/progress-indicator"
@@ -141,6 +142,16 @@ export default function FeedbackPage() {
         </section>
 
         <FaqSection items={faqItems} expandedIndex={expandedFaq} onToggle={(index) => setExpandedFaq(expandedFaq === index ? null : index)} />
+
+        {/* Link to full FAQ page */}
+        <div className="px-4 pb-12 -mt-8 text-center">
+          <Link
+            href="/duvidas-frequentes"
+            className="inline-flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 transition underline underline-offset-4"
+          >
+            Ver todas as dúvidas frequentes →
+          </Link>
+        </div>
 
         <Footer />
       </div>

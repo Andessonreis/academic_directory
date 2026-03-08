@@ -121,14 +121,15 @@ export default function TeamSection() {
 
       {selectedMember && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setSelectedMember(null)}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 350 }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-sm md:max-w-4xl bg-[#111] border border-white/10 rounded-xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+            className="relative w-full max-w-md md:max-w-4xl bg-[#111] border border-white/10 rounded-t-2xl md:rounded-2xl overflow-hidden flex flex-col md:flex-row max-h-[85vh] md:max-h-[90vh]"
           >
             <button
               onClick={() => setSelectedMember(null)}
@@ -138,7 +139,26 @@ export default function TeamSection() {
               <X size={20} />
             </button>
 
-            <div className="w-full md:w-2/5 h-48 md:h-auto relative flex-shrink-0">
+            {/* ── Mobile: GitHub-style centered circular avatar ── */}
+            <div className="flex flex-col items-center pt-6 pb-2 md:hidden">
+              <div className="w-2 h-1 rounded-full bg-white/20 mb-4" />
+              {selectedMember.image ? (
+                <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-white/10 shadow-lg">
+                  <img
+                    src={selectedMember.image || "/placeholder.svg"}
+                    alt={selectedMember.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center border-2 border-white/10">
+                  <span className="text-3xl text-white/50">{selectedMember.name.charAt(0)}</span>
+                </div>
+              )}
+            </div>
+
+            {/* ── Desktop: side image (preserve current look) ── */}
+            <div className="hidden md:block md:w-2/5 relative flex-shrink-0">
               {selectedMember.image ? (
                 <img
                   src={selectedMember.image || "/placeholder.svg"}
@@ -149,26 +169,26 @@ export default function TeamSection() {
                 <div className="w-full h-full bg-gradient-to-br from-purple-500/20 to-pink-500/20" />
               )}
             </div>
-            <div className="p-4 sm:p-6 md:p-8 flex-1 flex flex-col">
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 pr-8">{selectedMember.name}</h2>
-              <p className="text-purple-400 font-bold uppercase tracking-wider text-xs md:text-sm mb-4">{selectedMember.role}</p>
+
+            <div className="p-5 md:p-8 flex-1 flex flex-col overflow-y-auto">
+              <div className="text-center md:text-left">
+                <h2 className="text-lg md:text-3xl font-bold text-white mb-1 md:mb-2 md:pr-8">{selectedMember.name}</h2>
+                <p className="text-purple-400 font-bold uppercase tracking-wider text-[11px] md:text-sm mb-4">{selectedMember.role}</p>
+              </div>
               {selectedMember.bio && (
-                <div className="relative mb-6">
-                  <div className="h-32 sm:h-40 md:h-auto md:flex-1 overflow-y-auto md:overflow-visible pr-2 md:pr-0">
-                    <p className="text-white/70 text-xs sm:text-sm md:text-base leading-relaxed">
-                      {selectedMember.bio}
-                    </p>
-                  </div>
-                  <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#111] via-[#111]/70 to-transparent md:hidden" />
+                <div className="mb-5">
+                  <p className="text-white/65 text-xs md:text-base leading-relaxed text-center md:text-left">
+                    {selectedMember.bio}
+                  </p>
                 </div>
               )}
-              <div className="flex gap-2 md:gap-3 mt-auto pt-4">
+              <div className="flex justify-center md:justify-start gap-2 md:gap-3 mt-auto pt-3">
                 {selectedMember.linkedin && (
                   <a
                     href={`https://linkedin.com/in/${selectedMember.linkedin}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
                     aria-label="LinkedIn"
                   >
                     <Linkedin size={18} className="text-white/60" />
@@ -179,7 +199,7 @@ export default function TeamSection() {
                     href={`https://github.com/${selectedMember.github}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
                     aria-label="GitHub"
                   >
                     <Github size={18} className="text-white/60" />
@@ -190,7 +210,7 @@ export default function TeamSection() {
                     href={`https://instagram.com/${selectedMember.instagram}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
                     aria-label="Instagram"
                   >
                     <InstagramIcon size={18} />
@@ -199,7 +219,7 @@ export default function TeamSection() {
                 {selectedMember.email && (
                   <a
                     href={`mailto:${selectedMember.email}`}
-                    className="p-2 md:p-2.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-colors"
                     aria-label="E-mail"
                   >
                     <Mail size={18} className="text-white/60" />
@@ -208,7 +228,7 @@ export default function TeamSection() {
               </div>
               <button
                 onClick={() => setSelectedMember(null)}
-                className="mt-4 w-full py-2 px-4 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors text-sm font-medium md:hidden"
+                className="mt-4 w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl transition-colors text-sm font-medium md:hidden"
               >
                 Fechar
               </button>
