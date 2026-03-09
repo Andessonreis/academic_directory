@@ -249,7 +249,7 @@ function EventModal({ event, onClose }: { event: EventItem; onClose: () => void 
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
         transition={{ duration: 0.2 }}
-        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border border-white/10 bg-[#111] shadow-2xl overscroll-contain"
+        className="relative flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#111] shadow-2xl overscroll-contain"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close */}
@@ -262,15 +262,15 @@ function EventModal({ event, onClose }: { event: EventItem; onClose: () => void 
 
         {/* Image */}
         {event.image_url ? (
-          <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-2xl">
+          <div className="relative w-full aspect-[16/9] shrink-0 overflow-hidden rounded-t-2xl">
             <img src={event.image_url} alt={event.title} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#111] via-transparent to-transparent" />
           </div>
         ) : (
-          <div className={cn("w-full h-24 bg-gradient-to-br opacity-30 rounded-t-2xl", colors.gradient)} />
+          <div className={cn("w-full h-24 shrink-0 bg-gradient-to-br opacity-30 rounded-t-2xl", colors.gradient)} />
         )}
 
-        <div className="p-5">
+        <div className="overflow-hidden p-5">
           {event.category && (
             <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-2", colors.bg, colors.text, colors.border)}>
               {event.category}
@@ -317,9 +317,11 @@ function EventModal({ event, onClose }: { event: EventItem; onClose: () => void 
               <h3 className="flex items-center gap-1.5 text-white font-semibold mb-1 text-xs">
                 <Info size={12} className="text-white/30" /> Sobre o evento
               </h3>
-              <p className="text-white/40 text-xs leading-relaxed whitespace-pre-line line-clamp-6">
-                {event.longDescription}
-              </p>
+              <div className="max-h-28 overflow-y-auto pr-1 sm:max-h-36 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
+                <p className="text-white/40 text-xs leading-relaxed whitespace-pre-line">
+                  {event.longDescription}
+                </p>
+              </div>
             </div>
           )}
 

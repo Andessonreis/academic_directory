@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { createEvent, updateEvent, deleteEvent } from "@/services/event-service"
-import { createCalendarEvent } from "@/services/calendar-service"
+import { createCalendarEvent, updateCalendarEvent } from "@/services/calendar-service"
 import { getActiveCourses } from "@/services/course-service"
 import { supabase } from "@/lib/supabase/client"
 import type { EventItem, Course } from "@/types/event"
@@ -199,30 +199,64 @@ export default function EventsManager() {
         tags: formData.tags,
       }
 
-      if (editingEvent) {
-        await updateEvent(editingEvent.id, payload)
-      } else {
-        await createEvent(payload)
+      const savedEvent = editingEvent
+        ? await updateEvent(editingEvent.id, payload)
+        : await createEvent(payload)
+
+      const eventDate = formData.startDate || getTodayDate()
+      const d = new Date(eventDate + "T12:00:00")
+      const weekday = d.toLocaleDateString("pt-BR", { weekday: "long" })
+      const calendarPayload = {
+        title: formData.title,
+        date: eventDate,
+        weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
+        type: "event" as const,
+        description: formData.description,
+        time: formData.startTime || undefined,
+        location: formData.location || undefined,
       }
 
-      // Create calendar event if checkbox is checked
-      if (formData.showInCalendar) {
-        const eventDate = formData.startDate || getTodayDate()
-        const d = new Date(eventDate + "T12:00:00")
-        const weekday = d.toLocaleDateString("pt-BR", { weekday: "long" })
-        try {
-          await createCalendarEvent({
-            title: formData.title,
-            date: eventDate,
-            weekday: weekday.charAt(0).toUpperCase() + weekday.slice(1),
-            type: "event",
-            description: formData.description,
-            time: formData.startTime || undefined,
-            location: formData.location || undefined,
-          })
-        } catch (calErr) {
-          console.error("Erro ao criar evento no calendário:", calErr)
+      try {
+        const sourceEventId = editingEvent?.id ?? savedEvent.id
+        const { data: linkedBySource } = await supabase
+          .from("calendar_events")
+          .select("id")
+          .eq("source_event_id", sourceEventId)
+          .eq("type", "event")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        let calendarEventId = linkedBySource?.id ?? null
+
+        if (!calendarEventId && editingEvent) {
+          const { data: linkedLegacy } = await supabase
+            .from("calendar_events")
+            .select("id")
+            .eq("type", "event")
+            .eq("title", editingEvent.title)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (linkedLegacy?.id) {
+            calendarEventId = linkedLegacy.id
+            await supabase
+              .from("calendar_events")
+              .update({ source_event_id: sourceEventId, updated_at: new Date().toISOString() })
+              .eq("id", linkedLegacy.id)
+          }
         }
+
+        if (calendarEventId) {
+          await updateCalendarEvent(calendarEventId, calendarPayload)
+        } else if (formData.showInCalendar) {
+          await createCalendarEvent({
+            ...calendarPayload,
+            sourceEventId,
+          })
+        }
+      } catch (calErr) {
+        console.error("Erro ao sincronizar evento no calendário:", calErr)
       }
 
       setIsDialogOpen(false)
@@ -817,8 +851,8 @@ export default function EventsManager() {
                     type="button"
                     onClick={() => toggleTag(tag)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${formData.tags.includes(tag)
-                        ? "border-purple-500/40 bg-purple-500/10 text-purple-400"
-                        : "border-white/10 text-white/30 hover:border-white/20"
+                      ? "border-purple-500/40 bg-purple-500/10 text-purple-400"
+                      : "border-white/10 text-white/30 hover:border-white/20"
                       }`}
                   >
                     {tag}
@@ -830,8 +864,8 @@ export default function EventsManager() {
                     type="button"
                     onClick={() => toggleTag(c.shortName || c.name)}
                     className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${formData.tags.includes(c.shortName || c.name)
-                        ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
-                        : "border-white/10 text-white/30 hover:border-white/20"
+                      ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
+                      : "border-white/10 text-white/30 hover:border-white/20"
                       }`}
                   >
                     {c.shortName || c.name}
