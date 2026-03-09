@@ -270,7 +270,7 @@ function EventModal({ event, onClose }: { event: EventItem; onClose: () => void 
           <div className={cn("w-full h-24 shrink-0 bg-gradient-to-br opacity-30 rounded-t-2xl", colors.gradient)} />
         )}
 
-        <div className="overflow-hidden p-5">
+        <div className="min-h-0 overflow-y-auto p-5 [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.25)_transparent] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/25">
           {event.category && (
             <span className={cn("inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider mb-2", colors.bg, colors.text, colors.border)}>
               {event.category}
