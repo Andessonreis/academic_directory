@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import { Card } from "@/components/ui/card"
-import { MessageCircle, ExternalLink, Users, Search } from "lucide-react"
+import { MessageCircle, ExternalLink, Users, Search, ChevronRight } from "lucide-react"
 import { getCommunityLinks } from "@/services/community-service"
 import type { CommunityLink } from "@/types/event"
 import Image from "next/image"
@@ -25,6 +25,41 @@ const TYPE_COLORS = {
   telegram: "from-blue-500/20 to-sky-500/5 border-blue-500/30",
   clube: "from-purple-500/20 to-pink-500/5 border-purple-500/30",
   outro: "from-gray-500/20 to-slate-500/5 border-gray-500/30"
+}
+
+function CommunityRow({ link }: { link: CommunityLink }) {
+  const iconSrc = TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]
+  const colorClass = {
+    whatsapp: "border-green-500/20 bg-green-500/5",
+    discord: "border-indigo-500/20 bg-indigo-500/5",
+    telegram: "border-blue-500/20 bg-blue-500/5",
+    clube: "border-purple-500/20 bg-purple-500/5",
+    outro: "border-gray-500/20 bg-gray-500/5",
+  }[link.type as keyof typeof TYPE_ICONS] ?? "border-white/10 bg-white/5"
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 transition active:opacity-70 ${colorClass}`}
+    >
+      <div className="shrink-0">
+        {iconSrc ? (
+          <Image src={iconSrc} alt={link.type} width={22} height={22} className="object-contain" />
+        ) : (
+          <MessageCircle className="text-green-400" size={20} />
+        )}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-white truncate">{link.title}</p>
+        {link.description && (
+          <p className="text-xs text-white/45 truncate">{link.description}</p>
+        )}
+      </div>
+      <ChevronRight className="shrink-0 text-white/25" size={16} />
+    </a>
+  )
 }
 
 export default function CommunityPage() {
@@ -148,7 +183,15 @@ export default function CommunityPage() {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {/* Mobile: compact rows */}
+                  <div className="sm:hidden space-y-2">
+                    {categoryLinks.map((link) => (
+                      <CommunityRow key={link.id} link={link} />
+                    ))}
+                  </div>
+
+                  {/* Desktop: cards grid */}
+                  <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
                     {categoryLinks.map((link) => (
                       <motion.a
                         href={link.url}

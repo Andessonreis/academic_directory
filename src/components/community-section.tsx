@@ -3,7 +3,7 @@
 import { useEffect, useState, useMemo } from "react"
 import { motion, cubicBezier, Variants } from "framer-motion"
 import { Card } from "@/components/ui/card"
-import { MessageCircle, ExternalLink, Users as UsersIcon } from "lucide-react"
+import { MessageCircle, ExternalLink, ChevronRight } from "lucide-react"
 import { getCommunityLinks } from "@/services/community-service"
 import type { CommunityLink } from "@/types/event"
 import Image from "next/image"
@@ -23,6 +23,60 @@ const TYPE_COLORS = {
   telegram: "from-blue-500/20 to-sky-500/5",
   clube: "from-purple-500/20 to-pink-500/5",
   outro: "from-gray-500/20 to-slate-500/5"
+}
+
+function CommunityRow({ link }: { link: CommunityLink }) {
+  const iconUrl = TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]
+
+  return (
+    <a
+      href={link.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex w-full items-center gap-3 rounded-xl border border-white/[0.05] bg-white/[0.02] p-2.5 text-left transition hover:bg-white/[0.05] active:scale-[0.99]"
+    >
+      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/10">
+        {iconUrl ? (
+          <div className="flex h-full w-full items-center justify-center bg-white/[0.04]">
+            <Image
+              src={iconUrl}
+              alt={link.type}
+              width={22}
+              height={22}
+              className="object-contain"
+            />
+          </div>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-white/[0.04]">
+            <MessageCircle size={18} className="text-white/30" />
+          </div>
+        )}
+        <span className="absolute bottom-0.5 left-0.5 h-2 w-2 rounded-full bg-emerald-400" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+        <h4 className="truncate text-sm font-semibold text-white/90 group-hover:text-white">{link.title}</h4>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px] text-white/40">
+          <span>{link.type.toUpperCase()}</span>
+          {link.category && (
+            <>
+              <span className="text-white/15">·</span>
+              <span className="truncate">{link.category}</span>
+            </>
+          )}
+        </div>
+        {(link.tags ?? []).length > 0 && (
+          <div className="mt-1 flex flex-wrap gap-1">
+            {link.tags!.slice(0, 3).map((tag) => (
+              <span key={tag} className="rounded-full bg-white/[0.04] px-1 py-0.5 text-[8px] text-white/30">{tag}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ChevronRight size={14} className="shrink-0 text-white/15 transition group-hover:text-white/40" />
+    </a>
+  )
 }
 
 function ScatteredDots() {
@@ -143,78 +197,81 @@ export default function CommunitySection() {
                 </motion.h3>
 
                 <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                  className="space-y-2 sm:grid sm:grid-cols-2 sm:gap-4 sm:space-y-0 lg:grid-cols-3"
                   variants={containerVariants}
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-50px" }}
                 >
                   {categoryLinks.map((link) => (
-                    <motion.a
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      key={link.id}
-                      variants={cardVariants}
-                      className="block group"
-                    >
-                      <Card className="h-full p-5 bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 backdrop-blur-sm relative overflow-hidden">
-                        {/* Hover Gradient Background */}
-                        <motion.div
-                          className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${TYPE_COLORS[link.type as keyof typeof TYPE_COLORS]}`}
-                        />
+                    <motion.div key={link.id} variants={cardVariants}>
+                      <div className="sm:hidden">
+                        <CommunityRow link={link} />
+                      </div>
 
-                        <div className="relative z-10 flex flex-col h-full">
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex items-center gap-3">
-                              {TYPE_ICONS[link.type as keyof typeof TYPE_ICONS] ? (
-                                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                                  <Image
-                                    src={TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]!}
-                                    alt={link.type}
-                                    width={24}
-                                    height={24}
-                                    className="object-contain"
-                                  />
+                      <motion.a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden sm:block group"
+                      >
+                        <Card className="h-full p-5 bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.06] hover:border-white/20 transition-all duration-300 backdrop-blur-sm relative overflow-hidden">
+                          <motion.div
+                            className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${TYPE_COLORS[link.type as keyof typeof TYPE_COLORS]}`}
+                          />
+
+                          <div className="relative z-10 flex flex-col h-full">
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                {TYPE_ICONS[link.type as keyof typeof TYPE_ICONS] ? (
+                                  <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
+                                    <Image
+                                      src={TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]!}
+                                      alt={link.type}
+                                      width={24}
+                                      height={24}
+                                      className="object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
+                                    <MessageCircle className="text-green-400" size={24} />
+                                  </div>
+                                )}
+                                <div className="px-2 py-1 rounded-md bg-white/5 text-xs font-medium text-white/60">
+                                  {link.type.toUpperCase()}
                                 </div>
-                              ) : (
-                                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors">
-                                  <MessageCircle className="text-green-400" size={24} />
-                                </div>
-                              )}
-                              <div className="px-2 py-1 rounded-md bg-white/5 text-xs font-medium text-white/60">
-                                {link.type.toUpperCase()}
                               </div>
+                              <ExternalLink className="text-white/20 group-hover:text-white/60 transition-colors" size={18} />
                             </div>
-                            <ExternalLink className="text-white/20 group-hover:text-white/60 transition-colors" size={18} />
-                          </div>
 
-                          <h4 className="text-lg font-semibold text-white mb-2 group-hover:text-white transition-colors">
-                            {link.title}
-                          </h4>
+                            <h4 className="text-lg font-semibold text-white mb-2 group-hover:text-white transition-colors">
+                              {link.title}
+                            </h4>
 
-                          {(link.tags ?? []).length > 0 && (
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {link.tags!.map((tag) => (
-                                <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-white/35 border border-white/[0.08]">{tag}</span>
-                              ))}
+                            {(link.tags ?? []).length > 0 && (
+                              <div className="flex flex-wrap gap-1 mb-2">
+                                {link.tags!.map((tag) => (
+                                  <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-white/[0.06] text-white/35 border border-white/[0.08]">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+
+                            {link.description && (
+                              <p className="text-white/50 text-sm leading-relaxed mb-4 group-hover:text-white/70 transition-colors line-clamp-2">
+                                {link.description}
+                              </p>
+                            )}
+
+                            <div className="mt-auto">
+                              <span className="text-xs font-medium text-green-400/60 group-hover:text-green-400 flex items-center gap-1 transition-colors">
+                                Entrar no grupo <span className="group-hover:translate-x-1 transition-transform">→</span>
+                              </span>
                             </div>
-                          )}
-
-                          {link.description && (
-                            <p className="text-white/50 text-sm leading-relaxed mb-4 group-hover:text-white/70 transition-colors line-clamp-2">
-                              {link.description}
-                            </p>
-                          )}
-
-                          <div className="mt-auto">
-                            <span className="text-xs font-medium text-green-400/60 group-hover:text-green-400 flex items-center gap-1 transition-colors">
-                              Entrar no grupo <span className="group-hover:translate-x-1 transition-transform">→</span>
-                            </span>
                           </div>
-                        </div>
-                      </Card>
-                    </motion.a>
+                        </Card>
+                      </motion.a>
+                    </motion.div>
                   ))}
                 </motion.div>
               </div>

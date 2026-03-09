@@ -46,6 +46,9 @@ const TYPE_OPTIONS = [
   { value: "outro", label: "Outro" },
 ]
 
+const DESCRIPTION_MAX_LENGTH = 160
+const MOBILE_BATCH_SIZE = 12
+
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -62,6 +65,7 @@ export default function CommunityManager() {
   const [links, setLinks] = useState<CommunityLink[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
+  const [visibleCount, setVisibleCount] = useState(MOBILE_BATCH_SIZE)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingLink, setEditingLink] = useState<CommunityLink | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
@@ -103,10 +107,12 @@ export default function CommunityManager() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {
+      const normalizedDescription = form.description.trim().slice(0, DESCRIPTION_MAX_LENGTH)
+      const payload = { ...form, description: normalizedDescription }
       if (editingLink) {
-        await updateCommunityLink(editingLink.id, form)
+        await updateCommunityLink(editingLink.id, payload)
       } else {
-        await createCommunityLink(form)
+        await createCommunityLink(payload)
       }
       await loadLinks()
       setIsDialogOpen(false)
@@ -148,6 +154,13 @@ export default function CommunityManager() {
       l.category.toLowerCase().includes(search.toLowerCase())
   )
 
+  useEffect(() => {
+    setVisibleCount(MOBILE_BATCH_SIZE)
+  }, [search, links.length])
+
+  const mobileLinks = filtered.slice(0, visibleCount)
+  const hasMoreMobile = visibleCount < filtered.length
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -174,16 +187,16 @@ export default function CommunityManager() {
             </Button>
           </DialogTrigger>
 
-          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg">
+          <DialogContent className="max-h-[90vh] overflow-y-auto max-w-lg border border-white/10 bg-[#111] text-white">
             <DialogHeader>
-              <DialogTitle>
+              <DialogTitle className="text-white">
                 {editingLink ? "Editar Link" : "Novo Link"}
               </DialogTitle>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4 mt-2">
               <div className="space-y-1.5">
-                <Label>Título *</Label>
+                <Label className="text-white/85">Título *</Label>
                 <Input
                   required
                   value={form.title}
@@ -191,23 +204,29 @@ export default function CommunityManager() {
                     setForm({ ...form, title: e.target.value })
                   }
                   placeholder="Ex: Grupo ADS 2024"
+                  className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label>Descrição</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-white/85">Descrição</Label>
+                  <span className="text-[11px] text-white/45">{form.description.length}/{DESCRIPTION_MAX_LENGTH}</span>
+                </div>
                 <Textarea
                   value={form.description}
                   onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
+                    setForm({ ...form, description: e.target.value.slice(0, DESCRIPTION_MAX_LENGTH) })
                   }
-                  placeholder="Breve descrição do link"
+                  placeholder="Descrição curta do link"
                   rows={2}
+                  maxLength={DESCRIPTION_MAX_LENGTH}
+                  className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <Label>URL *</Label>
+                <Label className="text-white/85">URL *</Label>
                 <Input
                   required
                   type="url"
@@ -216,19 +235,20 @@ export default function CommunityManager() {
                     setForm({ ...form, url: e.target.value })
                   }
                   placeholder="https://..."
+                  className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Tipo</Label>
+                  <Label className="text-white/85">Tipo</Label>
                   <Select
                     value={form.type}
                     onValueChange={(v) =>
                       setForm({ ...form, type: v as CommunityLink["type"] })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-white/15 bg-white/5 text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -242,31 +262,33 @@ export default function CommunityManager() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Categoria</Label>
+                  <Label className="text-white/85">Categoria</Label>
                   <Input
                     value={form.category}
                     onChange={(e) =>
                       setForm({ ...form, category: e.target.value })
                     }
                     placeholder="Ex: Turma ADS"
+                    className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Ícone (opcional)</Label>
+                  <Label className="text-white/85">Ícone (opcional)</Label>
                   <Input
                     value={form.icon}
                     onChange={(e) =>
                       setForm({ ...form, icon: e.target.value })
                     }
                     placeholder="Nome do ícone"
+                    className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Ordem de exibição</Label>
+                  <Label className="text-white/85">Ordem de exibição</Label>
                   <Input
                     type="number"
                     value={form.displayOrder}
@@ -276,13 +298,14 @@ export default function CommunityManager() {
                         displayOrder: Number.parseInt(e.target.value) || 0,
                       })
                     }
+                    className="border-white/15 bg-white/5 text-white placeholder:text-white/35"
                   />
                 </div>
               </div>
 
               {/* Tags - Público-Alvo */}
               <div className="space-y-1.5">
-                <Label>Público-Alvo (Tags)</Label>
+                <Label className="text-white/85">Público-Alvo (Tags)</Label>
                 <div className="flex flex-wrap gap-1.5">
                   {["Geral", "Superior", "Integrado"].map((tag) => (
                     <button
@@ -291,7 +314,7 @@ export default function CommunityManager() {
                       onClick={() => toggleTag(tag)}
                       className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${form.tags.includes(tag)
                           ? "border-green-500/40 bg-green-500/10 text-green-400"
-                          : "border-white/10 text-white/30 hover:border-white/20"
+                          : "border-white/20 bg-white/[0.04] text-white/70 hover:border-white/35 hover:bg-white/[0.08]"
                         }`}
                     >
                       {tag}
@@ -304,7 +327,7 @@ export default function CommunityManager() {
                       onClick={() => toggleTag(c.shortName || c.name)}
                       className={`rounded-full border px-2.5 py-1 text-[11px] font-medium transition ${form.tags.includes(c.shortName || c.name)
                           ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
-                          : "border-white/10 text-white/30 hover:border-white/20"
+                          : "border-white/20 bg-white/[0.04] text-white/70 hover:border-white/35 hover:bg-white/[0.08]"
                         }`}
                     >
                       {c.shortName || c.name}
@@ -313,14 +336,14 @@ export default function CommunityManager() {
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-sm cursor-pointer text-white/80">
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(e) =>
                     setForm({ ...form, isActive: e.target.checked })
                   }
-                  className="rounded"
+                  className="rounded border-white/20 bg-white/5"
                 />
                 Ativo (visível para os alunos)
               </label>
@@ -328,8 +351,9 @@ export default function CommunityManager() {
               <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => setIsDialogOpen(false)}
+                  className="border border-white/15 text-white/80 hover:bg-white/10"
                 >
                   Cancelar
                 </Button>
@@ -366,73 +390,129 @@ export default function CommunityManager() {
           Nenhum link encontrado.
         </p>
       ) : (
-        <div className="divide-y rounded-lg border bg-card">
-          {filtered.map((link) => (
-            <div
-              key={link.id}
-              className="flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3"
-            >
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`text-sm font-medium truncate ${!link.isActive ? "line-through text-muted-foreground" : ""
-                      }`}
-                  >
-                    {link.title}
-                  </span>
-                  <span className="hidden sm:inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground uppercase tracking-wide">
-                    {link.type}
-                  </span>
+        <>
+          {/* Mobile: compact list */}
+          <div className="sm:hidden divide-y divide-white/[0.06] rounded-xl border border-white/[0.08] bg-white/[0.02]">
+            {mobileLinks.map((link) => (
+              <div key={link.id} className="flex items-center gap-3 p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`truncate text-sm font-semibold ${link.isActive ? "text-white/90" : "line-through text-white/40"}`}>
+                      {link.title}
+                    </span>
+                    <span className="shrink-0 rounded-full bg-white/[0.08] px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-white/55">
+                      {link.type}
+                    </span>
+                  </div>
+                  {link.category && (
+                    <p className="mt-0.5 truncate text-[11px] text-white/45">{link.category}</p>
+                  )}
                 </div>
-                {link.category && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    {link.category}
-                  </p>
-                )}
-              </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-white/55"
+                    onClick={() => handleToggleActive(link)}
+                    title={link.isActive ? "Desativar" : "Ativar"}
+                  >
+                    {link.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-white/55" asChild>
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink size={14} />
+                    </a>
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-white/55" onClick={() => openEdit(link)}>
+                    <Pencil size={14} />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-red-500" onClick={() => handleDelete(link.id)}>
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {hasMoreMobile && (
+              <div className="p-2.5">
                 <Button
-                  size="icon"
                   variant="ghost"
-                  className="h-7 w-7"
-                  onClick={() => handleToggleActive(link)}
-                  title={link.isActive ? "Desativar" : "Ativar"}
+                  className="h-8 w-full text-xs text-white/70 hover:bg-white/[0.06]"
+                  onClick={() => setVisibleCount((prev) => prev + MOBILE_BATCH_SIZE)}
                 >
-                  {link.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  asChild
-                >
-                  <a href={link.url} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink size={14} />
-                  </a>
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7"
-                  onClick={() => openEdit(link)}
-                >
-                  <Pencil size={14} />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-red-500 hover:text-red-600"
-                  onClick={() => handleDelete(link.id)}
-                >
-                  <Trash2 size={14} />
+                  Carregar mais links
                 </Button>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+
+          {/* Desktop: full list */}
+          <div className="hidden sm:block divide-y divide-white/10 rounded-lg border border-white/10 bg-white/[0.03]">
+            {filtered.map((link) => (
+              <div
+                key={link.id}
+                className="flex items-center gap-3 px-3 py-2.5 sm:px-4 sm:py-3"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm font-medium truncate ${!link.isActive ? "line-through text-white/40" : "text-white/90"
+                        }`}
+                    >
+                      {link.title}
+                    </span>
+                    <span className="hidden sm:inline-flex text-[10px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60 uppercase tracking-wide">
+                      {link.type}
+                    </span>
+                  </div>
+                  {link.category && (
+                    <p className="text-xs text-white/50 truncate">
+                      {link.category}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => handleToggleActive(link)}
+                    title={link.isActive ? "Desativar" : "Ativar"}
+                  >
+                    {link.isActive ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    asChild
+                  >
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink size={14} />
+                    </a>
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => openEdit(link)}
+                  >
+                    <Pencil size={14} />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-red-500 hover:text-red-600"
+                    onClick={() => handleDelete(link.id)}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

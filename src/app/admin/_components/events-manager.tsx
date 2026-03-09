@@ -13,6 +13,7 @@ import { createEvent, updateEvent, deleteEvent } from "@/services/event-service"
 import { createCalendarEvent, updateCalendarEvent } from "@/services/calendar-service"
 import { getActiveCourses } from "@/services/course-service"
 import { supabase } from "@/lib/supabase/client"
+import { resolveEventVars } from "@/lib/utils"
 import type { EventItem, Course } from "@/types/event"
 
 const STORAGE_BUCKET = "uploads"
@@ -82,7 +83,7 @@ export default function EventsManager() {
     registrationType: "none",
     registrationUrl: "",
     registrationEmailSubject: "Confirmação de Inscrição - {evento}",
-    registrationEmailBody: "Olá {nome},\n\nSua inscrição no evento \"{evento}\" foi confirmada!\n\nData: {data}\nHorário: {horario}\nLocal: {local}\n\nAté lá!\nDiretório Acadêmico - IFBA",
+    registrationEmailBody: "<p>Olá <b>{nome}</b>,</p><p>Sua inscrição em <b>{evento}</b> foi confirmada! ✅</p><p>📅 <b>Data:</b> {data}<br>🕒 <b>Horário:</b> {horario}<br>📍 <b>Local:</b> {local}</p><p>Até lá!<br><b>Diretório Acadêmico – IFBA</b></p>",
     showInCalendar: false,
     tags: [],
   })
@@ -287,7 +288,7 @@ export default function EventsManager() {
       registrationType: (event.registration_type as RegistrationType) || "none",
       registrationUrl: event.registration_url || "",
       registrationEmailSubject: event.registration_email_subject || "Confirmação de Inscrição - {evento}",
-      registrationEmailBody: event.registration_email_body || "",
+      registrationEmailBody: event.registration_email_body || "<p>Olá <b>{nome}</b>,</p><p>Sua inscrição em <b>{evento}</b> foi confirmada! ✅</p><p>📅 <b>Data:</b> {data}<br>🕒 <b>Horário:</b> {horario}<br>📍 <b>Local:</b> {local}</p><p>Até lá!<br><b>Diretório Acadêmico – IFBA</b></p>",
       showInCalendar: false,
       tags: (event as any).tags || [],
     })
@@ -323,7 +324,7 @@ export default function EventsManager() {
       registrationType: "none",
       registrationUrl: "",
       registrationEmailSubject: "Confirmação de Inscrição - {evento}",
-      registrationEmailBody: "Olá {nome},\n\nSua inscrição no evento \"{evento}\" foi confirmada!\n\nData: {data}\nHorário: {horario}\nLocal: {local}\n\nAté lá!\nDiretório Acadêmico - IFBA",
+      registrationEmailBody: "<p>Olá <b>{nome}</b>,</p><p>Sua inscrição em <b>{evento}</b> foi confirmada! ✅</p><p>📅 <b>Data:</b> {data}<br>🕒 <b>Horário:</b> {horario}<br>📍 <b>Local:</b> {local}</p><p>Até lá!<br><b>Diretório Acadêmico – IFBA</b></p>",
       showInCalendar: false,
       tags: [],
     })
@@ -794,6 +795,8 @@ export default function EventsManager() {
 
                 {formData.registrationType === "internal" && (
                   <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2">
+
+                    {/* Subject */}
                     <div>
                       <Label className="text-sm text-white/70 flex items-center gap-2">
                         <Mail size={14} className="text-purple-400" />
@@ -805,20 +808,65 @@ export default function EventsManager() {
                         placeholder="Confirmação de Inscrição - {evento}"
                         className="bg-white/5 border-white/10 text-white placeholder:text-white/30 mt-1"
                       />
-                      <p className="text-xs text-white/40 mt-1">Use {"{evento}"}, {"{data}"}, {"{local}"} como variáveis</p>
                     </div>
+
+                    {/* Email preview — main focus */}
                     <div>
-                      <Label className="text-sm text-white/70">Corpo do Email (Template)</Label>
-                      <Textarea
-                        value={formData.registrationEmailBody}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, registrationEmailBody: e.target.value }))}
-                        placeholder="Olá {nome},\n\nSua inscrição..."
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 min-h-[120px] mt-1 font-mono text-sm"
-                      />
-                      <p className="text-xs text-white/40 mt-1">
-                        Variáveis: {"{nome}"}, {"{email}"}, {"{evento}"}, {"{data}"}, {"{horario}"}, {"{local}"}
+                      <Label className="text-sm text-white/70 flex items-center gap-2 mb-2">
+                        <Mail size={14} className="text-emerald-400" />
+                        Email que o inscrito vai receber
+                      </Label>
+                      <div className="rounded-xl border border-emerald-500/20 bg-[#0d1a12] p-4">
+                        <p className="text-[10px] font-semibold text-emerald-500/50 uppercase tracking-widest mb-3">
+                          Pré-visualização — variáveis preenchidas automaticamente com os dados acima
+                        </p>
+                        {(() => {
+                          const resolved = resolveEventVars(
+                            formData.registrationEmailBody,
+                            {
+                              title: formData.title || "Nome do Evento",
+                              event_date: formData.startDate,
+                              event_time: formData.startTime,
+                              location: formData.location,
+                            },
+                            "Nome do inscrito"
+                          )
+                          const isHtml = /<[a-z][\s\S]*>/i.test(resolved)
+                          return isHtml ? (
+                            <div
+                              className="text-sm text-white/80 leading-relaxed [&_b]:text-white [&_p]:mb-2"
+                              dangerouslySetInnerHTML={{ __html: resolved }}
+                            />
+                          ) : (
+                            <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{resolved}</p>
+                          )
+                        })()}
+                      </div>
+                      <p className="text-xs text-white/30 mt-2">
+                        <b className="text-white/40">{"{"}nome{"}"}:</b> nome digitado no formulário de inscrição &nbsp;·&nbsp;
+                        <b className="text-white/40">{"{"}evento{"}"}:</b> título acima &nbsp;·&nbsp;
+                        <b className="text-white/40">{"{"}data{"}"}·{"{horario}"}·{"{local}"}:</b> campos acima
                       </p>
                     </div>
+
+                    {/* Template textarea — secondary, for customization */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-xs text-white/30 hover:text-white/50 transition select-none list-none flex items-center gap-1.5">
+                        <span className="group-open:rotate-90 transition-transform inline-block">▶</span>
+                        Editar template do email (HTML avançado)
+                      </summary>
+                      <div className="mt-2">
+                        <Textarea
+                          value={formData.registrationEmailBody}
+                          onChange={(e) => setFormData((prev) => ({ ...prev, registrationEmailBody: e.target.value }))}
+                          className="bg-white/5 border-white/10 text-white/70 placeholder:text-white/20 min-h-[120px] mt-1 font-mono text-xs"
+                        />
+                        <p className="text-[11px] text-white/25 mt-1">
+                          Variáveis disponíveis: {"{"}nome{"}"}  {"{"}evento{"}"}  {"{"}data{"}"}  {"{"}horario{"}"}  {"{"}local{"}"}  {"{"}email{"}"}. Suporta HTML.
+                        </p>
+                      </div>
+                    </details>
+
                   </div>
                 )}
               </div>

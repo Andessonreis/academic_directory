@@ -8,7 +8,7 @@ import Navigation from "@/components/navigation"
 import Footer from "@/components/footer"
 import { getEventById } from "@/services/event-service"
 import { getPageBySlug } from "@/services/page-service"
-import { cn } from "@/lib/utils"
+import { cn, resolveEventVars } from "@/lib/utils"
 import type { EventItem, CustomPage } from "@/types/event"
 
 const COLOR_MAP: Record<string, { bg: string; text: string; border: string; gradient: string }> = {
@@ -249,9 +249,25 @@ export default function EventDetailPage() {
             <h3 className="flex items-center gap-2 text-white font-semibold mb-3">
               <Info size={16} className="text-white/40" /> Sobre o evento
             </h3>
-            <p className="text-white/60 text-sm sm:text-base leading-relaxed whitespace-pre-line">
-              {event.longDescription || "Mais informações em breve."}
-            </p>
+            {(() => {
+              const resolved = event.longDescription
+                ? resolveEventVars(event.longDescription, event)
+                : "Mais informações em breve."
+              // If the resolved content looks like HTML, render it; otherwise plain text
+              const isHtml = /<[a-z][\s\S]*>/i.test(resolved)
+              return isHtml ? (
+                <div
+                  className="prose prose-invert prose-sm sm:prose-base max-w-none
+                    prose-p:text-white/60 prose-headings:text-white prose-a:text-purple-400
+                    prose-strong:text-white prose-li:text-white/60"
+                  dangerouslySetInnerHTML={{ __html: resolved }}
+                />
+              ) : (
+                <p className="text-white/60 text-sm sm:text-base leading-relaxed whitespace-pre-line">
+                  {resolved}
+                </p>
+              )
+            })()}
           </div>
 
           {/* Custom page content if linked */}
