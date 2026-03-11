@@ -16,6 +16,7 @@ import {
   HelpCircle,
   FileCode,
   GraduationCap,
+  Megaphone,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
@@ -26,6 +27,7 @@ import CommunityManager from "../_components/community-manager"
 import FaqManager from "../_components/faq-manager"
 import PageManager from "../_components/page-manager"
 import CourseManager from "../_components/course-manager"
+import FeedbackManager from "../_components/feedback-manager"
 import { cn } from "@/lib/utils"
 
 const NAV_ITEMS = [
@@ -84,6 +86,14 @@ const NAV_ITEMS = [
     color: "text-rose-400",
     activeBg: "bg-rose-500/10 border-rose-500/30",
     dot: "bg-rose-400",
+  },
+  {
+    id: "feedback",
+    label: "Feedbacks",
+    icon: Megaphone,
+    color: "text-yellow-400",
+    activeBg: "bg-yellow-500/10 border-yellow-500/30",
+    dot: "bg-yellow-400",
   },
 ]
 
@@ -203,31 +213,20 @@ export default function AdminDashboard() {
           </nav>
 
           <div className="mt-auto pt-4">
-            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-              <div className="flex items-start gap-3">
-                <div className="rounded-xl bg-emerald-500/10 p-2 text-emerald-400">
-                  <ShieldCheck size={16} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-white/85">Sessão protegida</p>
-                  <p className="mt-1 text-xs leading-relaxed text-white/40">
-                    Você está gerenciando a área administrativa com acesso autenticado.
-                  </p>
-                </div>
-              </div>
 
-              <div className="mt-4 border-t border-white/[0.06] pt-3">
-                <button
-                  onClick={handleSignOut}
-                  className="flex w-full items-center gap-3 rounded-xl border border-red-500/10 bg-red-500/[0.03] px-3 py-3 text-sm font-medium text-white/55 transition hover:border-red-500/25 hover:bg-red-500/10 hover:text-red-300"
-                >
-                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
-                    <LogOut size={16} />
-                  </span>
-                  <span className="flex-1 text-left">Sair da conta</span>
-                  <ChevronRight size={14} className="opacity-40" />
-                </button>
-              </div>
+
+            <div className="mt-4 border-t border-white/[0.06] pt-3">
+              <button
+                onClick={handleSignOut}
+                className="flex w-full items-center gap-3 rounded-xl border border-red-500/10 bg-red-500/[0.03] px-3 py-3 text-sm font-medium text-white/55 transition hover:border-red-500/25 hover:bg-red-500/10 hover:text-red-300"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
+                  <LogOut size={16} />
+                </span>
+                <span className="flex-1 text-left">Sair da conta</span>
+                <ChevronRight size={14} className="opacity-40" />
+              </button>
+
             </div>
           </div>
         </div>
@@ -270,6 +269,7 @@ export default function AdminDashboard() {
           {activeTab === "faq" && <FaqManager />}
           {activeTab === "pages" && <PageManager />}
           {activeTab === "courses" && <CourseManager />}
+          {activeTab === "feedback" && <FeedbackManager />}
         </main>
       </div>
     </div>

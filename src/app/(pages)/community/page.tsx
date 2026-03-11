@@ -183,86 +183,87 @@ export default function CommunityPage() {
                 const categoryLinks = groupedLinks[type]
                 const label = TYPE_LABELS[type]
                 return (
-                <motion.div
-                  key={type}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                >
-                  <div className="flex items-center gap-4 mb-6">
-                    <h2 className="text-3xl font-bold text-white">{label}</h2>
-                    <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-medium">
-                      {categoryLinks.length} {categoryLinks.length === 1 ? 'link' : 'links'}
-                    </span>
-                  </div>
+                  <motion.div
+                    key={type}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                  >
+                    <div className="flex items-center gap-4 mb-6">
+                      <h2 className="text-3xl font-bold text-white">{label}</h2>
+                      <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-medium">
+                        {categoryLinks.length} {categoryLinks.length === 1 ? 'link' : 'links'}
+                      </span>
+                    </div>
 
-                  {/* Mobile: compact rows */}
-                  <div className="sm:hidden space-y-2">
-                    {categoryLinks.map((link) => (
-                      <CommunityRow key={link.id} link={link} />
-                    ))}
-                  </div>
+                    {/* Mobile: compact rows */}
+                    <div className="sm:hidden space-y-2">
+                      {categoryLinks.map((link) => (
+                        <CommunityRow key={link.id} link={link} />
+                      ))}
+                    </div>
 
-                  {/* Desktop: cards grid */}
-                  <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {categoryLinks.map((link) => (
-                      <motion.a
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        key={link.id}
-                        whileHover={{ scale: 1.02, y: -4 }}
-                        transition={{ duration: 0.2 }}
-                        className="block group"
-                      >
-                        <Card className={`h-full p-6 bg-gradient-to-br ${TYPE_COLORS[link.type as keyof typeof TYPE_COLORS]} border backdrop-blur-sm hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300`}>
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              {TYPE_ICONS[link.type as keyof typeof TYPE_ICONS] ? (
-                                <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-sm">
-                                  <Image
-                                    src={TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]!}
-                                    alt={link.type}
-                                    width={28}
-                                    height={28}
-                                    className="object-contain"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-sm">
-                                  <MessageCircle className="text-green-400" size={28} />
-                                </div>
-                              )}
+                    {/* Desktop: cards grid */}
+                    <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                      {categoryLinks.map((link) => (
+                        <motion.a
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          key={link.id}
+                          whileHover={{ scale: 1.02, y: -4 }}
+                          transition={{ duration: 0.2 }}
+                          className="block group"
+                        >
+                          <Card className={`h-full p-6 bg-gradient-to-br ${TYPE_COLORS[link.type as keyof typeof TYPE_COLORS]} border backdrop-blur-sm hover:shadow-xl hover:shadow-green-500/10 transition-all duration-300`}>
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="flex items-center gap-3">
+                                {TYPE_ICONS[link.type as keyof typeof TYPE_ICONS] ? (
+                                  <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-sm">
+                                    <Image
+                                      src={TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]!}
+                                      alt={link.type}
+                                      width={28}
+                                      height={28}
+                                      className="object-contain"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="p-2.5 rounded-xl bg-white/10 backdrop-blur-sm">
+                                    <MessageCircle className="text-green-400" size={28} />
+                                  </div>
+                                )}
+                              </div>
+                              <ExternalLink className="text-white/30 group-hover:text-white/70 transition-colors" size={20} />
                             </div>
-                            <ExternalLink className="text-white/30 group-hover:text-white/70 transition-colors" size={20} />
-                          </div>
 
-                          <h3 className="text-xl font-bold text-white mb-2 group-hover:text-green-300 transition-colors">
-                            {link.title}
-                          </h3>
+                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-green-300 transition-colors">
+                              {link.title}
+                            </h3>
 
-                          {link.description && (
-                            <p className="text-white/60 text-sm leading-relaxed mb-4 line-clamp-2">
-                              {link.description}
-                            </p>
-                          )}
+                            {link.description && (
+                              <p className="text-white/60 text-sm leading-relaxed mb-4 line-clamp-2">
+                                {link.description}
+                              </p>
+                            )}
 
-                          <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
-                            <span className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                              {label}
-                            </span>
-                            <span className="text-sm font-medium text-green-400 group-hover:text-green-300 flex items-center gap-1.5 transition-colors">
-                              Entrar
-                              <span className="group-hover:translate-x-1 transition-transform">→</span>
-                            </span>
-                          </div>
-                        </Card>
-                      </motion.a>
-                    ))}
-                  </div>
-                </motion.div>
-              )})
-            }
+                            <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
+                              <span className="text-xs font-medium text-white/50 uppercase tracking-wider">
+                                {label}
+                              </span>
+                              <span className="text-sm font-medium text-green-400 group-hover:text-green-300 flex items-center gap-1.5 transition-colors">
+                                Entrar
+                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                              </span>
+                            </div>
+                          </Card>
+                        </motion.a>
+                      ))}
+                    </div>
+                  </motion.div>
+                )
+              })
+              }
             </div>
           )}
         </div>

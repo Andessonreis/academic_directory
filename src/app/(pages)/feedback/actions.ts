@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@supabase/supabase-js'
+import { onFeedbackCreated } from '@/services/notifications/events'
 
 export interface ManifestacaoData {
   tipo: 'reclamacao' | 'sugestao' | 'denuncia' | 'elogio'
@@ -78,6 +79,18 @@ export async function enviarManifestacao(data: ManifestacaoData) {
         error: 'Erro ao enviar manifestação. Tente novamente mais tarde.',
       }
     }
+
+    // Emite evento → enfileira e-mails de notificação de forma assíncrona
+    // (não bloqueia a resposta ao aluno; erros de e-mail são logados)
+    void onFeedbackCreated({
+      feedbackId: manifestacao.id,
+      tipo: manifestacao.tipo,
+      conteudo: manifestacao.conteudo,
+      anonimo: manifestacao.anonimo,
+      nome: manifestacao.nome ?? null,
+      email: manifestacao.email ?? null,
+      createdAt: manifestacao.created_at ?? new Date().toISOString(),
+    })
 
     return {
       success: true,
