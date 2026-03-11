@@ -9,14 +9,13 @@ import { MessageCircle, ExternalLink, Users, Search, ChevronRight } from "lucide
 import { getCommunityLinks } from "@/services/community-service"
 import type { CommunityLink } from "@/types/event"
 import Image from "next/image"
-import { Input } from "@/components/ui/input"
 
 const TYPE_ICONS = {
   whatsapp: "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg",
   discord: "https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0a6a49cf127bf92de1e2_icon_clyde_blurple_RGB.png",
   telegram: "https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg",
   clube: null,
-  outro: null
+  outro: null,
 }
 
 const TYPE_COLORS = {
@@ -24,8 +23,18 @@ const TYPE_COLORS = {
   discord: "from-indigo-500/20 to-blue-500/5 border-indigo-500/30",
   telegram: "from-blue-500/20 to-sky-500/5 border-blue-500/30",
   clube: "from-purple-500/20 to-pink-500/5 border-purple-500/30",
-  outro: "from-gray-500/20 to-slate-500/5 border-gray-500/30"
+  outro: "from-gray-500/20 to-slate-500/5 border-gray-500/30",
 }
+
+// Categorias pré-determinadas e padronizadas
+const TYPE_LABELS: Record<string, string> = {
+  whatsapp: "WhatsApp",
+  discord: "Discord",
+  telegram: "Telegram",
+  clube: "Clubes & Grupos de Estudo",
+  outro: "Outros",
+}
+const TYPE_ORDER = ["whatsapp", "discord", "telegram", "clube", "outro"]
 
 function CommunityRow({ link }: { link: CommunityLink }) {
   const iconSrc = TYPE_ICONS[link.type as keyof typeof TYPE_ICONS]
@@ -89,13 +98,14 @@ export default function CommunityPage() {
   const groupedLinks = useMemo(() => {
     const groups: Record<string, CommunityLink[]> = {}
     filteredLinks.forEach((link) => {
-      if (!groups[link.category]) {
-        groups[link.category] = []
-      }
-      groups[link.category].push(link)
+      const key = link.type
+      if (!groups[key]) groups[key] = []
+      groups[key].push(link)
     })
     return groups
   }, [filteredLinks])
+
+  const activeTypes = TYPE_ORDER.filter((t) => (groupedLinks[t]?.length ?? 0) > 0)
 
   return (
     <main className="min-h-screen bg-[#030303] text-white selection:bg-green-500/30">
@@ -132,13 +142,13 @@ export default function CommunityPage() {
             {/* Search Bar */}
             <div className="max-w-xl mx-auto">
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/40" size={20} />
-                <Input
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" size={20} />
+                <input
                   type="text"
                   placeholder="Buscar grupos, turmas, clubes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-6 bg-white/5 border-white/10 text-white placeholder:text-white/40 rounded-xl focus:border-green-500/50 focus:ring-green-500/20"
+                  className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 text-white placeholder:text-white/40 rounded-xl outline-none focus:border-green-500/50 focus:ring-2 focus:ring-green-500/20 transition"
                 />
               </div>
             </div>
@@ -153,7 +163,7 @@ export default function CommunityPage() {
             <div className="flex items-center justify-center py-20">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
             </div>
-          ) : Object.keys(groupedLinks).length === 0 ? (
+          ) : activeTypes.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -169,15 +179,18 @@ export default function CommunityPage() {
             </motion.div>
           ) : (
             <div className="space-y-16">
-              {Object.entries(groupedLinks).map(([category, categoryLinks], idx) => (
+              {activeTypes.map((type, idx) => {
+                const categoryLinks = groupedLinks[type]
+                const label = TYPE_LABELS[type]
+                return (
                 <motion.div
-                  key={category}
+                  key={type}
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
                   <div className="flex items-center gap-4 mb-6">
-                    <h2 className="text-3xl font-bold text-white">{category}</h2>
+                    <h2 className="text-3xl font-bold text-white">{label}</h2>
                     <span className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 text-sm font-medium">
                       {categoryLinks.length} {categoryLinks.length === 1 ? 'link' : 'links'}
                     </span>
@@ -236,7 +249,7 @@ export default function CommunityPage() {
 
                           <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
                             <span className="text-xs font-medium text-white/50 uppercase tracking-wider">
-                              {link.type}
+                              {label}
                             </span>
                             <span className="text-sm font-medium text-green-400 group-hover:text-green-300 flex items-center gap-1.5 transition-colors">
                               Entrar
@@ -248,7 +261,8 @@ export default function CommunityPage() {
                     ))}
                   </div>
                 </motion.div>
-              ))}
+              )})
+            }
             </div>
           )}
         </div>

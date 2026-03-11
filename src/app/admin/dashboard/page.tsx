@@ -100,7 +100,7 @@ export default function AdminDashboard() {
   const activeItem = NAV_ITEMS.find((n) => n.id === activeTab) ?? NAV_ITEMS[0]
 
   return (
-    <div className="flex min-h-screen bg-[#030303] text-white">
+    <div className="flex h-screen overflow-hidden bg-[#030303] text-white">
       {/* ── SIDEBAR OVERLAY (mobile) ── */}
       {sidebarOpen && (
         <div
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
 
         {/* Nav */}
         <div className="flex flex-1 flex-col overflow-hidden px-3 py-4">
-          <nav className="space-y-1 overflow-y-auto pr-1">
+          <nav className="space-y-1 overflow-y-auto pr-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
             <p className="mb-3 px-2 text-[9px] font-black uppercase tracking-[0.3em] text-white/20">
               Gerenciar
             </p>
