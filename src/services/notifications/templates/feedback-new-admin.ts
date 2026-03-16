@@ -100,16 +100,15 @@ export function feedbackNewAdminTemplate(payload: FeedbackNewAdminPayload): {
             </table>
 
             <!-- CTA -->
-            ${
-              !payload.anonimo && payload.email
-                ? `<div style="margin-top:28px;padding-top:24px;border-top:1px solid #2a2a2a;">
+            ${!payload.anonimo && payload.email
+        ? `<div style="margin-top:28px;padding-top:24px;border-top:1px solid #2a2a2a;">
                 <a href="mailto:${payload.email}?subject=${encodeURIComponent(`Re: ${tipoLabel} — DA IFBA Irecê`)}"
                    style="display:inline-block;padding:12px 24px;background:#3b82f6;color:#fff;border-radius:8px;text-decoration:none;font-size:14px;font-weight:600;">
                   Responder por e-mail
                 </a>
               </div>`
-                : ""
-            }
+        : ""
+      }
           </td>
         </tr>
 

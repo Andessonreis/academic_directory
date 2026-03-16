@@ -373,8 +373,9 @@ export default function StudentIdSection() {
             </p>
           </div>
           <div className="text-white/50 text-xs sm:text-sm md:text-right space-y-1">
-            <p>Atualizado para o ano letivo de 2025.</p>
-            <p>Links oficiais curados pelo D.A. do IFBA.</p>
+            <p>Links oficiais reunidos pelo D.A. do IFBA.</p>
+            <p>Atualizado para o ano letivo de <span>{new Date().getFullYear()}</span></p>
+
           </div>
         </div>
 

@@ -57,9 +57,8 @@ export function feedbackAnsweredTemplate(payload: FeedbackAnsweredPayload): {
               e ela foi marcada como respondida.
             </p>
 
-            ${
-              payload.adminMessage
-                ? `
+            ${payload.adminMessage
+        ? `
             <!-- Resposta da equipe -->
             <div style="background:#1e1b4b;border:1px solid #3730a3;border-radius:10px;padding:20px;margin-bottom:24px;">
               <p style="margin:0 0 8px;font-size:11px;color:#818cf8;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;">
@@ -67,8 +66,8 @@ export function feedbackAnsweredTemplate(payload: FeedbackAnsweredPayload): {
               </p>
               <p style="margin:0;font-size:15px;color:#c7d2fe;line-height:1.7;white-space:pre-wrap;">${escapeHtml(payload.adminMessage)}</p>
             </div>`
-                : ""
-            }
+        : ""
+      }
 
             <!-- Mensagem original -->
             <div style="background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:20px;margin-bottom:24px;">
